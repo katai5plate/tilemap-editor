@@ -613,37 +613,33 @@ export const getTilesAnalisis = (ctx, width, height, sizeOfTile) => {
 };
 
 export const updateMapSize = (size) => {
-  const [mapTileWidth, mapTileHeight] = [
-    _.mul$mapTileWidth,
-    _.mul$mapTileHeight,
-  ].map(force);
   if (size?.mapWidth && size?.mapWidth > 1) {
     _.mul$mapTileWidth = size?.mapWidth;
-    _.mul$WIDTH = mapTileWidth * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
-    _.mul$maps[_.mul$ACTIVE_MAP].mapWidth = mapTileWidth;
+    _.mul$WIDTH = force(_.mul$mapTileWidth) * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
+    _.mul$maps[_.mul$ACTIVE_MAP].mapWidth = _.mul$mapTileWidth;
     force(
       tag(document.querySelector(".canvas_resizer[resizerdir='x']"))
-      // ).style = `left:${_.mul$WIDTH}px`;
     ).style.left = `${_.mul$WIDTH}px`;
     force(
       tagInput(document.querySelector(".canvas_resizer[resizerdir='x'] input"))
-    ).value = String(mapTileWidth);
-    force(tagInput(document.getElementById("canvasWidthInp"))).value =
-      String(mapTileWidth);
+    ).value = String(_.mul$mapTileWidth);
+    force(tagInput(document.getElementById("canvasWidthInp"))).value = String(
+      _.mul$mapTileWidth
+    );
   }
   if (size?.mapHeight && size?.mapHeight > 1) {
     _.mul$mapTileHeight = size?.mapHeight;
-    _.mul$HEIGHT = mapTileHeight * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
-    _.mul$maps[_.mul$ACTIVE_MAP].mapHeight = mapTileHeight;
+    _.mul$HEIGHT = force(_.mul$mapTileHeight) * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
+    _.mul$maps[_.mul$ACTIVE_MAP].mapHeight = _.mul$mapTileHeight;
     force(
       tag(document.querySelector(".canvas_resizer[resizerdir='y']"))
-      // ).style = `top:${_.mul$HEIGHT}px`;
     ).style.top = `${_.mul$HEIGHT}px`;
     force(
       tagInput(document.querySelector(".canvas_resizer[resizerdir='y'] input"))
-    ).value = String(mapTileHeight);
-    force(tagInput(document.getElementById("canvasHeightInp"))).value =
-      String(mapTileHeight);
+    ).value = String(_.mul$mapTileHeight);
+    force(tagInput(document.getElementById("canvasHeightInp"))).value = String(
+      _.mul$mapTileHeight
+    );
   }
   draw();
 };
