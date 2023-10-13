@@ -1,28 +1,7 @@
 //@ts-check
-import { getEmptyLayer } from "./utils.js";
 import _ from "./state.js";
 import { any, force, tagCanvas, tagInput, target } from "../helper.js";
-
-export const getEmptyMap = (
-  name = "map",
-  mapWidth = 20,
-  mapHeight = 20,
-  tileSize = 32,
-  gridColor = "#00FFFF"
-) => ({
-  layers: [
-    getEmptyLayer("bottom"),
-    getEmptyLayer("middle"),
-    getEmptyLayer("top"),
-  ],
-  name,
-  mapWidth,
-  mapHeight,
-  tileSize,
-  width: mapWidth * _.mul$SIZE_OF_CROP,
-  height: mapHeight * _.mul$SIZE_OF_CROP,
-  gridColor,
-});
+import { shouldHideSymbols } from "./nodep.js";
 
 export const setLayer = ({ addToUndoStack, draw, updateLayers }, newLayer) => {
   _.setLayer$currentLayer = Number(newLayer);
@@ -157,18 +136,6 @@ export const updateLayers = ({ addToUndoStack, draw, layersElement }) => {
   );
 };
 
-export const getTileData = (x = null, y = null) => {
-  const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel.value].tileData;
-  let data;
-  if (x === null && y === null) {
-    const { x: sx, y: sy } = _.mul$selection[0];
-    return tilesetTiles[`${sx}-${sy}`];
-  } else {
-    data = tilesetTiles[`${x}-${y}`];
-  }
-  return data;
-};
-
 export const setActiveTool = ({ TOOLS, draw }, toolIdx) => {
   const toolButtonsWrapper = document.getElementById("toolButtonsWrapper");
   const canvas_wrapper = document.getElementById("canvas_wrapper");
@@ -190,7 +157,9 @@ export const updateSelection = (
   { TOOLS, draw, onUpdateState },
   autoSelectTool = true
 ) => {
-  if (!_.mul$tileSets[_.init$tilesetDataSel.value]) return;
+  const tilesetDataSel = force(_.init$tilesetDataSel);
+  const tilesetSelection = force(_.init$tilesetSelection);
+  if (!_.mul$tileSets[tilesetDataSel.value]) return;
   const selected = _.mul$selection[0];
   if (!selected) return;
   const { x, y } = selected;
@@ -199,19 +168,17 @@ export const updateSelection = (
   const selHeight = endY - y + 1;
   _.updateSelection$selectionSize = [selWidth, selHeight];
 
-  console.log(_.mul$tileSets[_.init$tilesetDataSel.value].tileSize);
+  console.log(_.mul$tileSets[tilesetDataSel.value].tileSize);
 
-  const tileSize = _.mul$tileSets[_.init$tilesetDataSel.value].tileSize;
+  const tileSize = _.mul$tileSets[tilesetDataSel.value].tileSize;
 
-  _.init$tilesetSelection.style.left = `${x * tileSize * _.mul$ZOOM}px`;
+  tilesetSelection.style.left = `${x * tileSize * _.mul$ZOOM}px`;
 
-  _.init$tilesetSelection.style.top = `${y * tileSize * _.mul$ZOOM}px`;
+  tilesetSelection.style.top = `${y * tileSize * _.mul$ZOOM}px`;
 
-  _.init$tilesetSelection.style.width = `${selWidth * tileSize * _.mul$ZOOM}px`;
+  tilesetSelection.style.width = `${selWidth * tileSize * _.mul$ZOOM}px`;
 
-  _.init$tilesetSelection.style.height = `${
-    selHeight * tileSize * _.mul$ZOOM
-  }px`;
+  tilesetSelection.style.height = `${selHeight * tileSize * _.mul$ZOOM}px`;
 
   // Autoselect tool upon selecting a tile
   if (
@@ -222,19 +189,16 @@ export const updateSelection = (
 
   // show/hide param editor
 
-  if (_.init$tileDataSel.value === "frames" && _.getTile$editedEntity)
-    _.init$objectParametersEditor.classList.add("entity");
-  else _.init$objectParametersEditor.classList.remove("entity");
+  if (force(_.init$tileDataSel).value === "frames" && _.getTile$editedEntity)
+    force(_.init$objectParametersEditor).classList.add("entity");
+  else force(_.init$objectParametersEditor).classList.remove("entity");
   onUpdateState();
 };
 
-export const shouldHideSymbols = () =>
-  _.mul$SIZE_OF_CROP < 10 && _.mul$ZOOM < 2;
-
 export const updateTilesetGridContainer = ({ drawGrid, getCurrentFrames }) => {
-  const viewMode = _.init$tileDataSel.value;
+  const viewMode = force(_.init$tileDataSel).value;
 
-  const tilesetData = _.mul$tileSets[_.init$tilesetDataSel.value];
+  const tilesetData = _.mul$tileSets[force(_.init$tilesetDataSel).value];
   if (!tilesetData) return;
 
   const { tileCount, gridWidth, tileData, tags } = tilesetData;
@@ -243,7 +207,8 @@ export const updateTilesetGridContainer = ({ drawGrid, getCurrentFrames }) => {
     !_.toggleSymbolsVisible$DISPLAY_SYMBOLS || shouldHideSymbols();
   const canvas = force(tagCanvas(document.getElementById("tilesetCanvas")));
 
-  const img = _.reloadTilesets$TILESET_ELEMENTS[_.init$tilesetDataSel.value];
+  const img =
+    _.reloadTilesets$TILESET_ELEMENTS[force(_.init$tilesetDataSel).value];
 
   canvas.width = img.width * _.mul$ZOOM;
   canvas.height = img.height * _.mul$ZOOM;

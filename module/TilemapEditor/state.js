@@ -3,6 +3,13 @@
 // _.mul$ -- 複数個所で書き換わる
 // _.state$ -- 状態管理オブジェクト
 
+/** @typedef {{ x: number, y: number }} XY */
+/** @typedef {XY & { tilesetIdx: number, tileSymbol: string }} Tile */
+/**
+ * @template E
+ * @typedef {E | null | undefined} QS<E>
+ */
+
 export default {
   state$el: {
     tileFrameCount: "",
@@ -14,21 +21,22 @@ export default {
     animLoop: "",
   },
   init$tilesetImage: undefined,
+  /** @type {QS<HTMLCanvasElement>} */
   init$canvas: undefined,
   init$tilesetContainer: undefined,
-  /** @type {HTMLElement} */
+  /** @type {QS<HTMLElement>} */
   init$tilesetSelection: undefined,
   init$cropSize: undefined,
   init$confirmBtn: undefined,
   init$layersElement: undefined,
-  /** @type {HTMLSelectElement} */
+  /** @type {QS<HTMLSelectElement>} */
   init$tileDataSel: undefined,
   init$tileFrameSel: undefined,
   init$tileAnimSel: undefined,
-  /** @type {HTMLSelectElement} */
+  /** @type {QS<HTMLSelectElement>} */
   init$tilesetDataSel: undefined,
   init$mapsDataSel: undefined,
-  /** @type {HTMLElement} */
+  /** @type {QS<HTMLElement>} */
   init$objectParametersEditor: undefined,
   mul$mapTileHeight: undefined,
   mul$mapTileWidth: undefined,
@@ -43,7 +51,7 @@ export default {
   mul$ACTIVE_MAP: "",
   toggleSymbolsVisible$DISPLAY_SYMBOLS: false,
   init$SHOW_GRID: false,
-  /** @type {{x: number, y: number}[]} */
+  /** @type {Tile[]} */
   mul$selection: [],
   setLayer$currentLayer: 0,
   mul$isMouseDown: false,
@@ -53,6 +61,7 @@ export default {
   init_state$selectedTileSetLoader: {},
   init_state$apiTileMapExporters: {},
   init_state$apiTileMapImporters: {},
+  /** @type {(...args: any) => void} */
   init$apiOnUpdateCallback: () => {},
   init$apiOnMouseUp: () => {},
   getTile$editedEntity: undefined,
@@ -60,5 +69,6 @@ export default {
   mul$undoStepPosition: -1,
   clearUndoStack$undoStack: [],
   mul$zoomIndex: 1,
+  /** @type {XY} */
   init$tileSelectStart: null,
 };
