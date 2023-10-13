@@ -1,4 +1,3 @@
-//@ts-check
 import importTiledJson from "../importers/tiled.js";
 import tileSetImages from "./constants/tileSetImages.js";
 import getImgurGallery from "./getImgurGallery.js";

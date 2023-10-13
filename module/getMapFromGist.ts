@@ -4,7 +4,7 @@ export default (gistId, cb) => {
     .then((blob) => blob.json())
     .then((data) => {
       let mapFound;
-      Object.entries(data.files).forEach(([key, val]) => {
+      Object.entries(data.files).forEach(([key, val]: any) => {
         if (!mapFound && key.endsWith(".json")) {
           fetch(val.raw_url)
             .then((blob) => blob.json())

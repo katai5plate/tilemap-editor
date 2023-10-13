@@ -1,4 +1,3 @@
-//@ts-check
 export const tilemapEditorRootHTML = ({ width, height, mapTileWidth }) => `
 <div id="tilemapjs_root" class="card tilemapjs_root">
  <a id="downloadAnchorElem" style="display:none"></a>

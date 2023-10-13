@@ -45,7 +45,7 @@ export default ({
       // Load assets
       ${Object.values(tileSets)
         .map(
-          (tileSet, tileSetIdx) => `
+          (tileSet: any, tileSetIdx) => `
             loadSprite("tileset-${tileSetIdx}", "${tileSet.src}", {
             sliceX: ${tileSet.gridWidth},
             sliceY: ${tileSet.gridHeight},
@@ -59,7 +59,7 @@ export default ({
       // tileset
         ${Object.values(tileSets)
           .map(
-            (tileSet, tileSetIdx) => `
+            (tileSet: any, tileSetIdx) => `
             const tileset_${tileSetIdx}_data = {
             width: ${tileSet.tileSize},
             height: ${tileSet.tileSize},

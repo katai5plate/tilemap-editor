@@ -1,4 +1,3 @@
-//@ts-check
 import { RANDOM_LETTERS, TOOLS, ZOOM_LEVELS } from "../constants/enums.js";
 import { activeLayerLabelHTML, layersElementHTML } from "../constants/html.js";
 import { target } from "../helper.js";
