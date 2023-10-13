@@ -1,5 +1,5 @@
-const importTiledJson = ()=>{
-    console.log("TEST ======================")
-}
+const importTiledJson = () => {
+  console.log("TEST ======================");
+};
 
 export default importTiledJson;
