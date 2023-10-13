@@ -8,13 +8,17 @@
       name="description"
       content="Create your tile map with this online Tile Map Editor"
     />
-    <link rel="stylesheet" href="src/styles.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="module/TilemapEditor/styles.css"
+    />
 
     <link rel="manifest" href="manifest.webmanifest" />
     <meta name="theme-color" content="#317EFB" />
     <link rel="apple-touch-icon" href="/icon.png" />
     <link rel="stylesheet" type="text/css" href="module/main.css" />
-    <script src="src/tilemap-editor.js"></script>
+    <!-- <script src="src/tilemap-editor.js"></script> -->
 
     <title>TileMapEditor.js</title>
   </head>
@@ -26,6 +30,7 @@
       <a id="reload">Click here to update.</a>
     </div>
 
+    <script type="module" src="module/TilemapEditor/index.js"></script>
     <script type="module" src="importers/tiled.js"></script>
     <script type="module" src="module/index.js"></script>
   </body>

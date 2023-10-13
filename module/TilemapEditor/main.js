@@ -1,15 +1,4 @@
-// @ts-check
-(function (root, factory) {
-  // @ts-ignore
-  if (typeof exports === "object" && typeof exports.nodeName !== "string") {
-    // CommonJS
-    factory(exports);
-  } else {
-    // Browser globals
-    // @ts-ignore
-    factory((root.TilemapEditor = {}));
-  }
-})(typeof self !== "undefined" ? self : this, function (exports) {
+export default function (exports) {
   // Call once on element to add behavior, toggle on/off isDraggable attr to enable
   const draggable = ({
     element,
@@ -2494,4 +2483,4 @@
   exports.onMouseUp = apiOnMouseUp;
 
   exports.getTilesets = () => tileSets;
-});
+}
