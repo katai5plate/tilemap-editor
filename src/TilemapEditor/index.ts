@@ -1,5 +1,5 @@
 import init from "./init/index.js";
-import { getAppState } from "./nodep.js";
+import { getAppState } from "./features.js";
 import _ from "./state.js";
 import { toBase64 } from "./utils.js";
 

@@ -33,7 +33,7 @@ import {
   reloadTilesets,
   updateMaps,
   restoreFromUndoStackData,
-} from "./../nodep.js";
+} from "../features.js";
 import { TOOLS, ZOOM_LEVELS } from "../../constants/enums.js";
 import { QS, Tile, XY } from "../type";
 import { target } from "../../helper.js";
