@@ -4,7 +4,8 @@
   "description": "A fat-free tilemap editor with zero dependencies and a scalable, mobile-friendly interface!",
   "main": "src/tilemap-editor.js",
   "scripts": {
-    "start": "serve",
+    "start": "npm run build && serve",
+    "build": "rimraf dist && tsc",
     "predeploy": "node updatePwa.js",
     "deploy": "gh-pages -d ."
   },
@@ -29,5 +30,9 @@
   "devDependencies": {
     "gh-pages": "^3.2.2",
     "serve": "^12.0.0"
+  },
+  "dependencies": {
+    "rimraf": "^5.0.5",
+    "typescript": "^5.2.2"
   }
 }

@@ -19,7 +19,7 @@ let tileMapData; //= ioJsonData;
 const initTilemapEditor = () => {
   console.log("INIT with", { tileSetImages: _tileSetImages, tileSize });
   // TODO move this under after parsing url params and get everything from there
-  TilemapEditor.init("tileMapEditor", {
+  (TilemapEditor as any).init("tileMapEditor", {
     // The id of the element that will become the tilemap-editor (must exist in your dom)
     // loads tilemap data which was saved before. undefined will start you with an empty map.
     // Takes a parsed json object with a data struct that tiled-editor can read (an object with maps and tileSets):
@@ -117,7 +117,7 @@ const initTilemapEditor = () => {
       // console.log("-->>", ev)
     },
   });
-  console.log("Got App State:", TilemapEditor.getState());
+  console.log("Got App State:", (TilemapEditor as any).getState());
 };
 
 if (window.location.href.includes("?")) {
