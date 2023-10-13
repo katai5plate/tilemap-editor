@@ -7,6 +7,9 @@ export const any = (value) => value;
  */
 export const target = (e) => e.target;
 
+/** @returns {HTMLDivElement | null} */
+export const tag = (el) => el;
+
 /** @returns {HTMLInputElement | null} */
 export const tagInput = (el) => el;
 

@@ -20,25 +20,34 @@ export default {
     animSpeed: "",
     animLoop: "",
   },
+  /** @type {QS<HTMLImageElement>} */
   init$tilesetImage: undefined,
   /** @type {QS<HTMLCanvasElement>} */
   init$canvas: undefined,
+  /** @type {QS<HTMLElement>} */
   init$tilesetContainer: undefined,
   /** @type {QS<HTMLElement>} */
   init$tilesetSelection: undefined,
+  /** @type {QS<HTMLInputElement>} */
   init$cropSize: undefined,
   init$confirmBtn: undefined,
+  /** @type {QS<HTMLElement>} */
   init$layersElement: undefined,
   /** @type {QS<HTMLSelectElement>} */
   init$tileDataSel: undefined,
+  /** @type {QS<HTMLSelectElement>} */
   init$tileFrameSel: undefined,
+  /** @type {QS<HTMLSelectElement>} */
   init$tileAnimSel: undefined,
   /** @type {QS<HTMLSelectElement>} */
   init$tilesetDataSel: undefined,
+  /** @type {QS<HTMLSelectElement>} */
   init$mapsDataSel: undefined,
   /** @type {QS<HTMLElement>} */
   init$objectParametersEditor: undefined,
+  /** @type {number | undefined} */
   mul$mapTileHeight: undefined,
+  /** @type {number | undefined} */
   mul$mapTileWidth: undefined,
   reloadTilesets$TILESET_ELEMENTS: [],
   mul$IMAGES: [{ src: "" }],
@@ -67,8 +76,9 @@ export default {
   getTile$editedEntity: undefined,
   updateSelection$selectionSize: [1, 1],
   mul$undoStepPosition: -1,
+  /** @type {{maps, tileSets, currentLayer, ACTIVE_MAP, IMAGES}[]} */
   clearUndoStack$undoStack: [],
   mul$zoomIndex: 1,
-  /** @type {XY} */
+  /** @type {XY | null} */
   init$tileSelectStart: null,
 };
