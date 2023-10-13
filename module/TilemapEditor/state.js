@@ -16,15 +16,19 @@ export default {
   init$tilesetImage: undefined,
   init$canvas: undefined,
   init$tilesetContainer: undefined,
+  /** @type {HTMLElement} */
   init$tilesetSelection: undefined,
   init$cropSize: undefined,
   init$confirmBtn: undefined,
   init$layersElement: undefined,
+  /** @type {HTMLSelectElement} */
   init$tileDataSel: undefined,
   init$tileFrameSel: undefined,
   init$tileAnimSel: undefined,
+  /** @type {HTMLSelectElement} */
   init$tilesetDataSel: undefined,
   init$mapsDataSel: undefined,
+  /** @type {HTMLElement} */
   init$objectParametersEditor: undefined,
   mul$mapTileHeight: undefined,
   mul$mapTileWidth: undefined,
@@ -39,6 +43,7 @@ export default {
   mul$ACTIVE_MAP: "",
   toggleSymbolsVisible$DISPLAY_SYMBOLS: false,
   init$SHOW_GRID: false,
+  /** @type {{x: number, y: number}[]} */
   mul$selection: [],
   setLayer$currentLayer: 0,
   mul$isMouseDown: false,

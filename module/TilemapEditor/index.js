@@ -4,7 +4,10 @@ import {
   getTileData,
   setActiveTool,
   setLayer,
+  shouldHideSymbols,
   updateLayers,
+  updateSelection,
+  updateTilesetGridContainer,
 } from "./split.js";
 import {
   toBase64,
@@ -30,119 +33,9 @@ const main = function (exports) {
     FILL: 5,
   };
 
-  const updateSelection = (autoSelectTool = true) => {
-    if (!_.mul$tileSets[_.init$tilesetDataSel.value]) return;
-    const selected = _.mul$selection[0];
-    if (!selected) return;
-    const { x, y } = selected;
-    const { x: endX, y: endY } = _.mul$selection[_.mul$selection.length - 1];
-    const selWidth = endX - x + 1;
-    const selHeight = endY - y + 1;
-    _.updateSelection$selectionSize = [selWidth, selHeight];
-    console.log(_.mul$tileSets[_.init$tilesetDataSel.value].tileSize);
-    const tileSize = _.mul$tileSets[_.init$tilesetDataSel.value].tileSize;
-    _.init$tilesetSelection.style.left = `${x * tileSize * _.mul$ZOOM}px`;
-    _.init$tilesetSelection.style.top = `${y * tileSize * _.mul$ZOOM}px`;
-    _.init$tilesetSelection.style.width = `${
-      selWidth * tileSize * _.mul$ZOOM
-    }px`;
-    _.init$tilesetSelection.style.height = `${
-      selHeight * tileSize * _.mul$ZOOM
-    }px`;
-
-    // Autoselect tool upon selecting a tile
-    if (
-      autoSelectTool &&
-      ![TOOLS.BRUSH, TOOLS.RAND, TOOLS.FILL].includes(_.mul$ACTIVE_TOOL)
-    )
-      setActiveTool(
-        { ACTIVE_TOOL: _.mul$ACTIVE_TOOL, TOOLS, draw },
-        TOOLS.BRUSH
-      );
-
-    // show/hide param editor
-    if (_.init$tileDataSel.value === "frames" && _.getTile$editedEntity)
-      _.init$objectParametersEditor.classList.add("entity");
-    else _.init$objectParametersEditor.classList.remove("entity");
-    onUpdateState();
-  };
-
-  const randomLetters = new Array(10680)
+  const RANDOM_LETTERS = new Array(10680)
     .fill(1)
     .map((_, i) => String.fromCharCode(165 + i));
-
-  const shouldHideSymbols = () => _.mul$SIZE_OF_CROP < 10 && _.mul$ZOOM < 2;
-  const updateTilesetGridContainer = () => {
-    const viewMode = _.init$tileDataSel.value;
-    const tilesetData = _.mul$tileSets[_.init$tilesetDataSel.value];
-    if (!tilesetData) return;
-
-    const { tileCount, gridWidth, tileData, tags } = tilesetData;
-    // console.log("COUNT", tileCount)
-    const hideSymbols =
-      !_.toggleSymbolsVisible$DISPLAY_SYMBOLS || shouldHideSymbols();
-    const canvas = document.getElementById("tilesetCanvas");
-    const img = _.reloadTilesets$TILESET_ELEMENTS[_.init$tilesetDataSel.value];
-    canvas.width = img.width * _.mul$ZOOM;
-    canvas.height = img.height * _.mul$ZOOM;
-    const ctx = canvas.getContext("2d");
-    if (_.mul$ZOOM !== 1) {
-      ctx.webkitImageSmoothingEnabled = false;
-      ctx.mozImageSmoothingEnabled = false;
-      ctx.msImageSmoothingEnabled = false;
-      ctx.imageSmoothingEnabled = false;
-    }
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    // console.log("WIDTH EXCEEDS?", canvas.width % SIZE_OF_CROP)
-    const tileSizeSeemsIncorrect = canvas.width % _.mul$SIZE_OF_CROP !== 0;
-    drawGrid(
-      ctx.canvas.width,
-      ctx.canvas.height,
-      ctx,
-      _.mul$SIZE_OF_CROP * _.mul$ZOOM,
-      tileSizeSeemsIncorrect ? "red" : "cyan"
-    );
-    Array.from({ length: tileCount }, (x, i) => i).map((tile) => {
-      if (viewMode === "frames") {
-        const frameData = getCurrentFrames();
-        if (!frameData || Object.keys(frameData).length === 0) return;
-
-        const { width, height, start, tiles, frameCount } = frameData;
-        _.mul$selection = [...tiles];
-        ctx.lineWidth = 0.5;
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * (start.x + width),
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * start.y,
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * (width * (frameCount - 1)),
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * height
-        );
-      } else if (!hideSymbols) {
-        const x = tile % gridWidth;
-        const y = Math.floor(tile / gridWidth);
-        const tileKey = `${x}-${y}`;
-        const innerTile =
-          viewMode === ""
-            ? tileData[tileKey]?.tileSymbol
-            : viewMode === "frames"
-            ? tile
-            : tags[viewMode]?.tiles[tileKey]?.mark || "-";
-
-        ctx.fillStyle = "white";
-        ctx.font = "11px arial";
-        ctx.shadowColor = "black";
-        ctx.shadowBlur = 4;
-        ctx.lineWidth = 2;
-        const posX =
-          x * _.mul$SIZE_OF_CROP * _.mul$ZOOM +
-          (_.mul$SIZE_OF_CROP * _.mul$ZOOM) / 3;
-        const posY =
-          y * _.mul$SIZE_OF_CROP * _.mul$ZOOM +
-          (_.mul$SIZE_OF_CROP * _.mul$ZOOM) / 2;
-        ctx.fillText(innerTile, posX, posY);
-      }
-    });
-  };
 
   const getSelectedTile = (event) => {
     const { x, y } = event.target.getBoundingClientRect();
@@ -155,30 +48,14 @@ const main = function (exports) {
     if (_.init$tileSelectStart !== null) {
       for (let ix = _.init$tileSelectStart.x; ix < tx + 1; ix++) {
         for (let iy = _.init$tileSelectStart.y; iy < ty + 1; iy++) {
-          const data = getTileData(
-            {
-              tileSets: _.mul$tileSets,
-              tilesetDataSel: _.init$tilesetDataSel,
-              selection: _.mul$selection,
-            },
-            ix,
-            iy
-          );
+          const data = getTileData(ix, iy);
           newSelection.push({ ...data, x: ix, y: iy });
         }
       }
     }
     if (newSelection.length > 0) return newSelection;
 
-    const data = getTileData(
-      {
-        tileSets: _.mul$tileSets,
-        tilesetDataSel: _.init$tilesetDataSel,
-        selection: _.mul$selection,
-      },
-      tx,
-      ty
-    );
+    const data = getTileData(tx, ty);
     return [{ ...data, x: tx, y: ty }];
   };
 
@@ -527,7 +404,7 @@ const main = function (exports) {
     document.getElementById("tileFrameSelContainer").style.display =
       _.init$tileDataSel.value === "frames" ? "flex" : "none";
     // tilesetContainer.style.top = tileDataSel.value ===  "frames" ? "45px" : "0";
-    updateTilesetGridContainer();
+    updateTilesetGridContainer({ drawGrid, getCurrentFrames });
   };
   const getTile = (key, allLayers = false) => {
     const layers = _.mul$maps[_.mul$ACTIVE_MAP].layers;
@@ -574,10 +451,10 @@ const main = function (exports) {
       // if(clicked.tilesetIdx !== tilesetDataSel.value) {
       //     tilesetDataSel.value = clicked.tilesetIdx;
       //     reloadTilesets();
-      //     updateTilesetGridContainer();
+      //     updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       // }
       selectMode("");
-      updateSelection();
+      updateSelection({ TOOLS, draw, onUpdateState });
       return true;
     } else if (_.getTile$editedEntity) {
       // console.log("Animated tile found", editedEntity)
@@ -596,7 +473,7 @@ const main = function (exports) {
         _.getTile$editedEntity.layer
       );
       _.init$tileFrameSel.value = _.getTile$editedEntity.name;
-      updateSelection();
+      updateSelection({ TOOLS, draw, onUpdateState });
       selectMode("frames");
       return true;
     } else {
@@ -849,8 +726,8 @@ const main = function (exports) {
     const newSymbol = window.prompt("Enter tile symbol", tileSymbol || "*");
     if (newSymbol !== null) {
       setTileData(x, y, newSymbol, "tileSymbol");
-      updateSelection();
-      updateTilesetGridContainer();
+      updateSelection({ TOOLS, draw, onUpdateState });
+      updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       addToUndoStack();
     }
   };
@@ -1041,7 +918,7 @@ const main = function (exports) {
     if (JSON.stringify(undoTileSets) !== JSON.stringify(_.mul$tileSets)) {
       // done to prevent the below, which is expensive
       _.mul$tileSets = undoTileSets;
-      updateTilesetGridContainer();
+      updateTilesetGridContainer({ drawGrid, getCurrentFrames });
     }
     _.mul$tileSets = undoTileSets;
     updateTilesetDataList();
@@ -1099,8 +976,8 @@ const main = function (exports) {
       _.init$tilesetImage.height * _.mul$ZOOM
     }px`;
     document.getElementById("zoomLabel").innerText = `${_.mul$ZOOM}x`;
-    updateTilesetGridContainer();
-    updateSelection(false);
+    updateTilesetGridContainer({ drawGrid, getCurrentFrames });
+    updateSelection({ TOOLS, draw, onUpdateState }, false);
     updateMapSize({
       mapWidth: _.mul$mapTileWidth,
       mapHeight: _.mul$mapTileHeight,
@@ -1131,7 +1008,7 @@ const main = function (exports) {
         !_.toggleSymbolsVisible$DISPLAY_SYMBOLS;
     document.getElementById("setSymbolsVisBtn").innerHTML =
       _.toggleSymbolsVisible$DISPLAY_SYMBOLS ? "👁️" : "👓";
-    updateTilesetGridContainer();
+    updateTilesetGridContainer({ drawGrid, getCurrentFrames });
   };
 
   const getCurrentAnimation = (getAnim) =>
@@ -1207,7 +1084,7 @@ const main = function (exports) {
         const x = tile % gridWidth;
         const y = Math.floor(tile / gridWidth);
         const oldTileData = old?.[`${x}-${y}`]?.tileData;
-        const tileSymbol = randomLetters[Math.floor(symbolStartIdx + tile)];
+        const tileSymbol = RANDOM_LETTERS[Math.floor(symbolStartIdx + tile)];
         tileData[`${x}-${y}`] = {
           ...oldTileData,
           x,
@@ -1245,7 +1122,7 @@ const main = function (exports) {
     document.getElementById("gridCropSize").value = _.mul$SIZE_OF_CROP;
     // console.log("NEW SIZE", tilesetDataSel.value,tileSets[tilesetDataSel.value], newSize,ACTIVE_MAP, maps)
     updateZoom();
-    updateTilesetGridContainer();
+    updateTilesetGridContainer({ drawGrid, getCurrentFrames });
     // console.log(tileSets, IMAGES)
     reevaluateTilesetsData();
     updateTilesetDataList();
@@ -1331,8 +1208,8 @@ const main = function (exports) {
       reevaluateTilesetsData();
       _.init$tilesetImage.src = _.reloadTilesets$TILESET_ELEMENTS[0].src;
       _.init$tilesetImage.crossOrigin = "Anonymous";
-      updateSelection(false);
-      updateTilesetGridContainer();
+      updateSelection({ TOOLS, draw, onUpdateState }, false);
+      updateTilesetGridContainer({ drawGrid, getCurrentFrames });
     });
     // finally current tileset loaded
     _.init$tilesetImage.addEventListener("load", () => {
@@ -1345,22 +1222,11 @@ const main = function (exports) {
         addToUndoStack,
         draw,
       });
-      if (_.mul$selection.length === 0)
-        _.mul$selection = [
-          getTileData(
-            {
-              tileSets: _.mul$tileSets,
-              tilesetDataSel: _.init$tilesetDataSel,
-              selection: _.mul$selection,
-            },
-            0,
-            0
-          ),
-        ];
-      updateSelection(false);
+      if (_.mul$selection.length === 0) _.mul$selection = [getTileData(0, 0)];
+      updateSelection({ TOOLS, draw, onUpdateState }, false);
       updateTilesetDataList();
       updateTilesetDataList(true);
-      updateTilesetGridContainer();
+      updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       document.getElementById(
         "tilesetSrcLabel"
       ).innerHTML = `src: <a href="${_.init$tilesetImage.src}">${_.init$tilesetImage.src}</a>`;
@@ -1430,7 +1296,6 @@ const main = function (exports) {
         ? { ...data.maps }
         : {
             [_.mul$ACTIVE_MAP]: getEmptyMap(
-              { SIZE_OF_CROP: _.mul$SIZE_OF_CROP },
               "Map 1",
               _.mul$mapTileWidth,
               _.mul$mapTileHeight
@@ -1651,7 +1516,7 @@ const main = function (exports) {
     _.init$tilesetContainer.addEventListener("pointermove", (e) => {
       if (_.init$tileSelectStart !== null) {
         _.mul$selection = getSelectedTile(e);
-        updateSelection();
+        updateSelection({ TOOLS, draw, onUpdateState });
       }
     });
 
@@ -1679,7 +1544,7 @@ const main = function (exports) {
       }, 100);
 
       _.mul$selection = getSelectedTile(e);
-      updateSelection();
+      updateSelection({ TOOLS, draw, onUpdateState });
       _.mul$selection = getSelectedTile(e);
       _.init$tileSelectStart = null;
 
@@ -1712,7 +1577,7 @@ const main = function (exports) {
         } else if (viewMode === "frames") {
           setFramesToSelection(_.init$tileFrameSel.value);
         }
-        updateTilesetGridContainer();
+        updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       }
     });
     _.init$tilesetContainer.addEventListener("dblclick", (e) => {
@@ -1742,10 +1607,7 @@ const main = function (exports) {
           alert("A map with this key already exists.");
           return;
         }
-        _.mul$maps[newMapKey] = getEmptyMap(
-          { SIZE_OF_CROP: _.mul$SIZE_OF_CROP },
-          result.trim()
-        );
+        _.mul$maps[newMapKey] = getEmptyMap(result.trim());
         addToUndoStack();
         updateMaps();
       }
@@ -1817,7 +1679,7 @@ const main = function (exports) {
     _.init$tileFrameSel.addEventListener("change", (e) => {
       _.state$el.tileFrameCount().value = getCurrentFrames()?.frameCount || 1;
       updateTilesetDataList(true);
-      updateTilesetGridContainer();
+      updateTilesetGridContainer({ drawGrid, getCurrentFrames });
     });
     _.state$el.animStart().addEventListener("change", (e) => {
       getCurrentAnimation().start = Number(_.state$el.animStart().value);
@@ -1853,7 +1715,7 @@ const main = function (exports) {
         setFramesToSelection(result);
         updateTilesetDataList(true);
         _.init$tileFrameSel.value = result;
-        updateTilesetGridContainer();
+        updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       }
     });
     document
@@ -1871,7 +1733,7 @@ const main = function (exports) {
             _.init$tileFrameSel.value
           ];
           updateTilesetDataList(true);
-          updateTilesetGridContainer();
+          updateTilesetGridContainer({ drawGrid, getCurrentFrames });
         }
       });
     const renameKeyInObjectForSelectElement = (
@@ -1915,7 +1777,7 @@ const main = function (exports) {
     _.state$el.tileFrameCount().addEventListener("change", (e) => {
       if (_.init$tileFrameSel.value === "") return;
       getCurrentFrames().frameCount = Number(e.target.value);
-      updateTilesetGridContainer();
+      updateTilesetGridContainer({ drawGrid, getCurrentFrames });
     });
 
     // animations
@@ -1927,7 +1789,7 @@ const main = function (exports) {
       _.state$el.animEnd().value = getCurrentAnimation()?.end || 1;
       _.state$el.animLoop().checked = getCurrentAnimation()?.loop || false;
       _.state$el.animSpeed().value = getCurrentAnimation()?.speed || 1;
-      updateTilesetGridContainer();
+      updateTilesetGridContainer({ drawGrid, getCurrentFrames });
     });
     document.getElementById("addTileAnimBtn").addEventListener("click", () => {
       const result = window.prompt(
@@ -1971,7 +1833,7 @@ const main = function (exports) {
         // setFramesToSelection(tileFrameSel.value, result);
         updateTilesetDataList(true);
         _.init$tileAnimSel.value = result;
-        updateTilesetGridContainer();
+        updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       }
     });
     document
@@ -1999,7 +1861,7 @@ const main = function (exports) {
             _.init$tileFrameSel.value
           ].animations[_.init$tileAnimSel.value];
           updateTilesetDataList(true);
-          updateTilesetGridContainer();
+          updateTilesetGridContainer({ drawGrid, getCurrentFrames });
         }
       });
     _.state$el.renameTileAnimBtn().addEventListener("click", () => {
@@ -2315,7 +2177,7 @@ const main = function (exports) {
         appState.currentLayer
       );
       _.mul$selection = appState.selection;
-      updateSelection(false);
+      updateSelection({ TOOLS, draw, onUpdateState }, false);
       _.init$SHOW_GRID = appState.SHOW_GRID;
     }
 
