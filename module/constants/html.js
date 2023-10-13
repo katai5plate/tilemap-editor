@@ -1,5 +1,5 @@
 //@ts-check
-export default ({ width, height, mapTileWidth }) => `
+export const tilemapEditorRootHTML = ({ width, height, mapTileWidth }) => `
 <div id="tilemapjs_root" class="card tilemapjs_root">
  <a id="downloadAnchorElem" style="display:none"></a>
 <div class="tileset_opt_field header">
@@ -215,3 +215,29 @@ export default ({ width, height, mapTileWidth }) => `
 </div>
 </div>
  `;
+
+export const activeLayerLabelHTML = ({ name, opacity }) => `
+ Editing Layer: ${name}
+ <div class="dropdown left">
+     <div class="item nohover">Layer: ${name} </div>
+     <div class="item">
+         <div class="slider-wrapper">
+           <label for="layerOpacitySlider">Opacity</label>
+           <input type="range" min="0" max="1" value="1" id="layerOpacitySlider" step="0.01">
+           <output for="layerOpacitySlider" id="layerOpacitySliderValue">${opacity}</output>
+         </div>
+     </div>
+ </div>
+`;
+
+export const layersElementHTML = ({ index, layer, enableButton }) => `
+<div class="layer">
+  <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${
+  layer.name
+}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
+  <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
+  <div id="trashLayerBtn-${index}" trash-layer="${index}" ${
+  enableButton ? "" : `disabled="true"`
+}>🗑️</div>
+</div>
+`;

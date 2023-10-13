@@ -1,5 +1,6 @@
 //@ts-check
-import { any, force } from "../helper.js";
+import { TOOLS } from "../constants/enums.js";
+import { any, force, tagInput } from "../helper.js";
 import _ from "./state.js";
 import { drawGrid, getEmptyLayer } from "./utils.js";
 
@@ -279,4 +280,57 @@ export const getSelectedTile = (event) => {
 
   const data = getTileData(tx, ty);
   return [{ ...data, x: tx, y: ty }];
+};
+
+export const setActiveTool = (toolIdx) => {
+  const toolButtonsWrapper = document.getElementById("toolButtonsWrapper");
+  const canvas_wrapper = document.getElementById("canvas_wrapper");
+
+  _.mul$ACTIVE_TOOL = toolIdx;
+  const actTool = tagInput(
+    force(toolButtonsWrapper).querySelector(`input[id="tool${toolIdx}"]`)
+  );
+
+  if (actTool) actTool.checked = true;
+  force(canvas_wrapper).setAttribute(
+    "isDraggable",
+    `${_.mul$ACTIVE_TOOL === TOOLS.PAN}`
+  );
+  draw();
+};
+
+export const updateSelection = (autoSelectTool = true) => {
+  const tilesetDataSel = force(_.init$tilesetDataSel);
+  const tilesetSelection = force(_.init$tilesetSelection);
+  if (!_.mul$tileSets[tilesetDataSel.value]) return;
+  const selected = _.mul$selection[0];
+  if (!selected) return;
+  const { x, y } = selected;
+  const { x: endX, y: endY } = _.mul$selection[_.mul$selection.length - 1];
+  const selWidth = endX - x + 1;
+  const selHeight = endY - y + 1;
+  _.updateSelection$selectionSize = [selWidth, selHeight];
+
+  console.log(_.mul$tileSets[tilesetDataSel.value].tileSize);
+
+  const tileSize = _.mul$tileSets[tilesetDataSel.value].tileSize;
+
+  tilesetSelection.style.left = `${x * tileSize * _.mul$ZOOM}px`;
+  tilesetSelection.style.top = `${y * tileSize * _.mul$ZOOM}px`;
+  tilesetSelection.style.width = `${selWidth * tileSize * _.mul$ZOOM}px`;
+  tilesetSelection.style.height = `${selHeight * tileSize * _.mul$ZOOM}px`;
+
+  // Autoselect tool upon selecting a tile
+  if (
+    autoSelectTool &&
+    ![TOOLS.BRUSH, TOOLS.RAND, TOOLS.FILL].includes(_.mul$ACTIVE_TOOL)
+  )
+    setActiveTool(TOOLS.BRUSH);
+
+  // show/hide param editor
+
+  if (force(_.init$tileDataSel).value === "frames" && _.getTile$editedEntity)
+    force(_.init$objectParametersEditor).classList.add("entity");
+  else force(_.init$objectParametersEditor).classList.remove("entity");
+  onUpdateState();
 };

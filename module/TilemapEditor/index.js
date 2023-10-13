@@ -1,4 +1,4 @@
-import html from "../constants/html.js";
+import { tilemapEditorRootHTML } from "../constants/html.js";
 import {
   toBase64,
   drawGrid,
@@ -6,21 +6,17 @@ import {
   getEmptyLayer,
 } from "./utils.js";
 import _ from "./state.js";
-import {
-  setLayer,
-  updateLayers,
-  setActiveTool,
-  updateSelection,
-  updateTilesetGridContainer,
-} from "./dep.js";
+import { setLayer, updateLayers, updateTilesetGridContainer } from "./dep.js";
 import {
   getEmptyMap,
   getTileData,
   getAppState,
-  onUpdateState,
   draw,
   getSelectedTile,
+  setActiveTool,
+  updateSelection,
 } from "./nodep.js";
+import { TOOLS } from "../constants/enums.js";
 
 const main = function (exports) {
   exports.toBase64 = toBase64;
@@ -28,15 +24,6 @@ const main = function (exports) {
   Object.keys(_.state$el).forEach((key) => {
     _.state$el[key] = () => document.getElementById(key);
   });
-
-  const TOOLS = {
-    BRUSH: 0,
-    ERASE: 1,
-    PAN: 2,
-    PICK: 3,
-    RAND: 4,
-    FILL: 5,
-  };
 
   const RANDOM_LETTERS = new Array(10680)
     .fill(1)
@@ -47,7 +34,7 @@ const main = function (exports) {
       _.mul$isMouseDown = true;
     } else if (e.button === 1) {
       _.mul$PREV_ACTIVE_TOOL = _.mul$ACTIVE_TOOL;
-      setActiveTool({ ACTIVE_TOOL: _.mul$ACTIVE_TOOL, TOOLS, draw }, TOOLS.PAN);
+      setActiveTool(TOOLS.PAN);
     }
   };
 
@@ -55,10 +42,7 @@ const main = function (exports) {
     if (e.button === 0) {
       _.mul$isMouseDown = false;
     } else if (e.button === 1 && _.mul$ACTIVE_TOOL === TOOLS.PAN) {
-      setActiveTool(
-        { ACTIVE_TOOL: _.mul$ACTIVE_TOOL, TOOLS, draw },
-        _.mul$PREV_ACTIVE_TOOL
-      );
+      setActiveTool(_.mul$PREV_ACTIVE_TOOL);
     }
   };
 
@@ -209,7 +193,6 @@ const main = function (exports) {
                 maps: _.mul$maps,
                 ACTIVE_MAP: _.mul$ACTIVE_MAP,
                 addToUndoStack,
-                draw,
                 updateLayers,
               },
               layers.length - index - 1
@@ -223,7 +206,6 @@ const main = function (exports) {
                 maps: _.mul$maps,
                 ACTIVE_MAP: _.mul$ACTIVE_MAP,
                 addToUndoStack,
-                draw,
                 updateLayers,
               },
               layers.length - index - 1
@@ -245,7 +227,7 @@ const main = function (exports) {
       //     updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       // }
       selectMode("");
-      updateSelection({ TOOLS, draw, onUpdateState });
+      updateSelection();
       return true;
     } else if (_.getTile$editedEntity) {
       // console.log("Animated tile found", editedEntity)
@@ -258,13 +240,12 @@ const main = function (exports) {
           maps: _.mul$maps,
           ACTIVE_MAP: _.mul$ACTIVE_MAP,
           addToUndoStack,
-          draw,
           updateLayers,
         },
         _.getTile$editedEntity.layer
       );
       _.init$tileFrameSel.value = _.getTile$editedEntity.name;
-      updateSelection({ TOOLS, draw, onUpdateState });
+      updateSelection();
       selectMode("frames");
       return true;
     } else {
@@ -292,19 +273,13 @@ const main = function (exports) {
     ) {
       const pickedTile = getTile(key, true);
       if (_.mul$ACTIVE_TOOL === TOOLS.BRUSH && !pickedTile)
-        setActiveTool(
-          { ACTIVE_TOOL: _.mul$ACTIVE_TOOL, TOOLS, draw },
-          TOOLS.ERASE
-        );
+        setActiveTool(TOOLS.ERASE);
       //picking empty tile, sets tool to eraser
       else if (
         _.mul$ACTIVE_TOOL === TOOLS.FILL ||
         _.mul$ACTIVE_TOOL === TOOLS.RAND
       )
-        setActiveTool(
-          { ACTIVE_TOOL: _.mul$ACTIVE_TOOL, TOOLS, draw },
-          TOOLS.BRUSH
-        ); //
+        setActiveTool(TOOLS.BRUSH); //
     } else {
       if (_.mul$ACTIVE_TOOL === TOOLS.BRUSH) {
         addTile(key); // also works with animated
@@ -333,7 +308,6 @@ const main = function (exports) {
         maps: _.mul$maps,
         ACTIVE_MAP: _.mul$ACTIVE_MAP,
         addToUndoStack,
-        draw,
         updateLayers,
       },
       0
@@ -344,7 +318,6 @@ const main = function (exports) {
       currentLayer: _.setLayer$currentLayer,
       layersElement: _.init$layersElement,
       addToUndoStack,
-      draw,
     });
     draw();
     addToUndoStack();
@@ -517,7 +490,7 @@ const main = function (exports) {
     const newSymbol = window.prompt("Enter tile symbol", tileSymbol || "*");
     if (newSymbol !== null) {
       setTileData(x, y, newSymbol, "tileSymbol");
-      updateSelection({ TOOLS, draw, onUpdateState });
+      updateSelection();
       updateTilesetGridContainer({ drawGrid, getCurrentFrames });
       addToUndoStack();
     }
@@ -613,7 +586,6 @@ const main = function (exports) {
       currentLayer: _.setLayer$currentLayer,
       layersElement: _.init$layersElement,
       addToUndoStack,
-      draw,
     });
   };
 
@@ -704,7 +676,6 @@ const main = function (exports) {
       currentLayer: _.setLayer$currentLayer,
       layersElement: _.init$layersElement,
       addToUndoStack,
-      draw,
     }); // needs to happen after active map is set and maps are updated
     setLayer(
       {
@@ -712,7 +683,6 @@ const main = function (exports) {
         maps: _.mul$maps,
         ACTIVE_MAP: _.mul$ACTIVE_MAP,
         addToUndoStack,
-        draw,
         updateLayers,
       },
       undoLayer
@@ -742,7 +712,7 @@ const main = function (exports) {
     }px`;
     document.getElementById("zoomLabel").innerText = `${_.mul$ZOOM}x`;
     updateTilesetGridContainer({ drawGrid, getCurrentFrames });
-    updateSelection({ TOOLS, draw, onUpdateState }, false);
+    updateSelection(false);
     updateMapSize({
       mapWidth: _.mul$mapTileWidth,
       mapHeight: _.mul$mapTileHeight,
@@ -973,7 +943,7 @@ const main = function (exports) {
       reevaluateTilesetsData();
       _.init$tilesetImage.src = _.reloadTilesets$TILESET_ELEMENTS[0].src;
       _.init$tilesetImage.crossOrigin = "Anonymous";
-      updateSelection({ TOOLS, draw, onUpdateState }, false);
+      updateSelection(false);
       updateTilesetGridContainer({ drawGrid, getCurrentFrames });
     });
     // finally current tileset loaded
@@ -985,10 +955,9 @@ const main = function (exports) {
         currentLayer: _.setLayer$currentLayer,
         layersElement: _.init$layersElement,
         addToUndoStack,
-        draw,
       });
       if (_.mul$selection.length === 0) _.mul$selection = [getTileData(0, 0)];
-      updateSelection({ TOOLS, draw, onUpdateState }, false);
+      updateSelection(false);
       updateTilesetDataList();
       updateTilesetDataList(true);
       updateTilesetGridContainer({ drawGrid, getCurrentFrames });
@@ -1176,7 +1145,6 @@ const main = function (exports) {
           currentLayer: _.setLayer$currentLayer,
           layersElement: _.init$layersElement,
           addToUndoStack,
-          draw,
         });
       }
     };
@@ -1245,7 +1213,7 @@ const main = function (exports) {
 
     if (_.mul$SIZE_OF_CROP < 12) _.mul$ZOOM = 2; // Automatically start with zoom 2 when the tilesize is tiny
     // Attach elements
-    attachTo.innerHTML = html({
+    attachTo.innerHTML = tilemapEditorRootHTML({
       width: _.mul$WIDTH,
       height: _.mul$HEIGHT,
       mapTileWidth: _.mul$mapTileWidth,
@@ -1281,7 +1249,7 @@ const main = function (exports) {
     _.init$tilesetContainer.addEventListener("pointermove", (e) => {
       if (_.init$tileSelectStart !== null) {
         _.mul$selection = getSelectedTile(e);
-        updateSelection({ TOOLS, draw, onUpdateState });
+        updateSelection();
       }
     });
 
@@ -1309,7 +1277,7 @@ const main = function (exports) {
       }, 100);
 
       _.mul$selection = getSelectedTile(e);
-      updateSelection({ TOOLS, draw, onUpdateState });
+      updateSelection();
       _.mul$selection = getSelectedTile(e);
       _.init$tileSelectStart = null;
 
@@ -1807,10 +1775,7 @@ const main = function (exports) {
       .addEventListener("click", (e) => {
         console.log("ACTIVE_TOOL", e.target.value);
         if (e.target.getAttribute("name") === "tool")
-          setActiveTool(
-            { ACTIVE_TOOL: _.mul$ACTIVE_TOOL, TOOLS, draw },
-            Number(e.target.value)
-          );
+          setActiveTool(Number(e.target.value));
       });
     document.getElementById("gridCropSize").addEventListener("change", (e) => {
       setCropSize(Number(e.target.value));
@@ -1926,23 +1891,19 @@ const main = function (exports) {
       setActiveMap(appState.ACTIVE_MAP);
       _.mul$PREV_ACTIVE_TOOL = appState.PREV_ACTIVE_TOOL;
       _.mul$ACTIVE_TOOL = appState.ACTIVE_TOOL;
-      setActiveTool(
-        { ACTIVE_TOOL: _.mul$ACTIVE_TOOL, TOOLS, draw },
-        appState.ACTIVE_TOOL
-      );
+      setActiveTool(appState.ACTIVE_TOOL);
       setLayer(
         {
           currentLayer: _.setLayer$currentLayer,
           maps: _.mul$maps,
           ACTIVE_MAP: _.mul$ACTIVE_MAP,
           addToUndoStack,
-          draw,
           updateLayers,
         },
         appState.currentLayer
       );
       _.mul$selection = appState.selection;
-      updateSelection({ TOOLS, draw, onUpdateState }, false);
+      updateSelection(false);
       _.init$SHOW_GRID = appState.SHOW_GRID;
     }
 

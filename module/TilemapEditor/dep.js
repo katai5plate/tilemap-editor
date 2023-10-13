@@ -1,9 +1,10 @@
 //@ts-check
 import _ from "./state.js";
 import { any, force, tagCanvas, tagInput, target } from "../helper.js";
-import { shouldHideSymbols } from "./nodep.js";
+import { draw, shouldHideSymbols } from "./nodep.js";
+import { activeLayerLabelHTML, layersElementHTML } from "../constants/html.js";
 
-export const setLayer = ({ addToUndoStack, draw, updateLayers }, newLayer) => {
+export const setLayer = ({ addToUndoStack, updateLayers }, newLayer) => {
   _.setLayer$currentLayer = Number(newLayer);
 
   const oldActivedLayer = document.querySelector(".layer.active");
@@ -21,23 +22,9 @@ export const setLayer = ({ addToUndoStack, draw, updateLayers }, newLayer) => {
   document
     .querySelector(`.layer[tile-layer="${newLayer}"]`)
     ?.classList.add("active");
-  force(activeLayerLabel).innerHTML = `
-          Editing Layer: ${_.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]?.name}
-          <div class="dropdown left">
-              <div class="item nohover">Layer: ${
-                _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]?.name
-              } </div>
-              <div class="item">
-                  <div class="slider-wrapper">
-                    <label for="layerOpacitySlider">Opacity</label>
-                    <input type="range" min="0" max="1" value="1" id="layerOpacitySlider" step="0.01">
-                    <output for="layerOpacitySlider" id="layerOpacitySliderValue">${
-                      _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]?.opacity
-                    }</output>
-                  </div>
-              </div>
-          </div>
-      `;
+  force(activeLayerLabel).innerHTML = activeLayerLabelHTML(
+    _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]
+  );
   if (layerOpacitySlider) {
     layerOpacitySlider.value =
       _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]?.opacity;
@@ -54,7 +41,7 @@ export const setLayer = ({ addToUndoStack, draw, updateLayers }, newLayer) => {
   } else console.warn({ layerOpacitySlider });
 };
 
-export const updateLayers = ({ addToUndoStack, draw, layersElement }) => {
+export const updateLayers = ({ addToUndoStack, layersElement }) => {
   const setLayerIsVisible = (layer, override = false) => {
     const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${layer}`);
     if (!setLayerVisBtn) throw new Error("dom not found");
@@ -74,7 +61,6 @@ export const updateLayers = ({ addToUndoStack, draw, layersElement }) => {
     setLayer(
       {
         addToUndoStack,
-        draw,
         updateLayers,
       },
       _.mul$maps[_.mul$ACTIVE_MAP].layers.length - 1
@@ -83,19 +69,13 @@ export const updateLayers = ({ addToUndoStack, draw, layersElement }) => {
   };
 
   layersElement.innerHTML = _.mul$maps[_.mul$ACTIVE_MAP].layers
-    .map((layer, index) => {
-      return `
-            <div class="layer">
-              <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${
-        layer.name
-      }">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
-              <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
-              <div id="trashLayerBtn-${index}" trash-layer="${index}" ${
-        _.mul$maps[_.mul$ACTIVE_MAP].layers.length > 1 ? "" : `disabled="true"`
-      }>🗑️</div>
-            </div>
-          `;
-    })
+    .map((layer, index) =>
+      layersElementHTML({
+        layer,
+        index,
+        enableButton: _.mul$maps[_.mul$ACTIVE_MAP].layers.length > 1,
+      })
+    )
     .reverse()
     .join("\n");
 
@@ -108,7 +88,6 @@ export const updateLayers = ({ addToUndoStack, draw, layersElement }) => {
       setLayer(
         {
           addToUndoStack,
-          draw,
           updateLayers,
         },
 
@@ -129,70 +108,10 @@ export const updateLayers = ({ addToUndoStack, draw, layersElement }) => {
   setLayer(
     {
       addToUndoStack,
-      draw,
       updateLayers,
     },
     _.setLayer$currentLayer
   );
-};
-
-export const setActiveTool = ({ TOOLS, draw }, toolIdx) => {
-  const toolButtonsWrapper = document.getElementById("toolButtonsWrapper");
-  const canvas_wrapper = document.getElementById("canvas_wrapper");
-
-  _.mul$ACTIVE_TOOL = toolIdx;
-  const actTool = tagInput(
-    force(toolButtonsWrapper).querySelector(`input[id="tool${toolIdx}"]`)
-  );
-
-  if (actTool) actTool.checked = true;
-  force(canvas_wrapper).setAttribute(
-    "isDraggable",
-    `${_.mul$ACTIVE_TOOL === TOOLS.PAN}`
-  );
-  draw();
-};
-
-export const updateSelection = (
-  { TOOLS, draw, onUpdateState },
-  autoSelectTool = true
-) => {
-  const tilesetDataSel = force(_.init$tilesetDataSel);
-  const tilesetSelection = force(_.init$tilesetSelection);
-  if (!_.mul$tileSets[tilesetDataSel.value]) return;
-  const selected = _.mul$selection[0];
-  if (!selected) return;
-  const { x, y } = selected;
-  const { x: endX, y: endY } = _.mul$selection[_.mul$selection.length - 1];
-  const selWidth = endX - x + 1;
-  const selHeight = endY - y + 1;
-  _.updateSelection$selectionSize = [selWidth, selHeight];
-
-  console.log(_.mul$tileSets[tilesetDataSel.value].tileSize);
-
-  const tileSize = _.mul$tileSets[tilesetDataSel.value].tileSize;
-
-  tilesetSelection.style.left = `${x * tileSize * _.mul$ZOOM}px`;
-
-  tilesetSelection.style.top = `${y * tileSize * _.mul$ZOOM}px`;
-
-  tilesetSelection.style.width = `${selWidth * tileSize * _.mul$ZOOM}px`;
-
-  tilesetSelection.style.height = `${selHeight * tileSize * _.mul$ZOOM}px`;
-
-  // Autoselect tool upon selecting a tile
-  if (
-    autoSelectTool &&
-    ![TOOLS.BRUSH, TOOLS.RAND, TOOLS.FILL].includes(_.mul$ACTIVE_TOOL)
-  )
-    setActiveTool({ TOOLS, draw }, TOOLS.BRUSH);
-
-  // show/hide param editor
-
-  if (force(_.init$tileDataSel).value === "frames" && _.getTile$editedEntity)
-    force(_.init$objectParametersEditor).classList.add("entity");
-  else force(_.init$objectParametersEditor).classList.remove("entity");
-  onUpdateState();
 };
 
 export const updateTilesetGridContainer = ({ drawGrid, getCurrentFrames }) => {
