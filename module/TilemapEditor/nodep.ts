@@ -1,7 +1,7 @@
 //@ts-check
 import { RANDOM_LETTERS, TOOLS, ZOOM_LEVELS } from "../constants/enums.js";
 import { activeLayerLabelHTML, layersElementHTML } from "../constants/html.js";
-import { any, force, tag, tagCanvas, tagInput, target } from "../helper.js";
+import { target } from "../helper.js";
 import _ from "./state.js";
 import { decoupleReferenceFromObj, drawGrid, getEmptyLayer } from "./utils.js";
 
@@ -27,8 +27,7 @@ export const getEmptyMap = (
 });
 
 export const getTileData = (x = NaN, y = NaN) => {
-  const tilesetTiles =
-    _.mul$tileSets[force(_.init$tilesetDataSel).value].tileData;
+  const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel.value].tileData;
   let data;
   if (Number.isNaN(x) && Number.isNaN(y)) {
     const { x: sx, y: sy } = _.mul$selection[0];
@@ -70,7 +69,7 @@ export const onUpdateState = () => {
 };
 
 export const draw = (shouldDrawGrid = true) => {
-  const ctx = force(force(_.init$canvas).getContext("2d"));
+  const ctx = _.init$canvas.getContext("2d");
   ctx.clearRect(0, 0, _.mul$WIDTH, _.mul$HEIGHT);
   ctx.canvas.width = _.mul$WIDTH;
   ctx.canvas.height = _.mul$HEIGHT;
@@ -88,9 +87,9 @@ export const draw = (shouldDrawGrid = true) => {
     if (!layer.visible) return;
     ctx.globalAlpha = layer.opacity;
     if (_.mul$ZOOM !== 1) {
-      any(ctx).webkitImageSmoothingEnabled = false;
-      any(ctx).mozImageSmoothingEnabled = false;
-      any(ctx).msImageSmoothingEnabled = false;
+      (ctx as any).webkitImageSmoothingEnabled = false;
+      (ctx as any).mozImageSmoothingEnabled = false;
+      (ctx as any).msImageSmoothingEnabled = false;
       ctx.imageSmoothingEnabled = false;
     }
     //static tiles on this layer
@@ -170,7 +169,7 @@ export const draw = (shouldDrawGrid = true) => {
         return;
       }
       const frameIndex =
-        force(_.init$tileDataSel).value === "frames" || frameCount === 1
+        _.init$tileDataSel.value === "frames" || frameCount === 1
           ? Math.round(Date.now() / 120) % frameCount
           : 1; //30fps
 
@@ -264,7 +263,7 @@ export const draw = (shouldDrawGrid = true) => {
 export const getSelectedTile = (event) => {
   const { x, y } = event.target.getBoundingClientRect();
   const tileSize =
-    _.mul$tileSets[force(_.init$tilesetDataSel).value].tileSize * _.mul$ZOOM;
+    _.mul$tileSets[_.init$tilesetDataSel.value].tileSize * _.mul$ZOOM;
   const tx = Math.floor(Math.max(event.clientX - x, 0) / tileSize);
   const ty = Math.floor(Math.max(event.clientY - y, 0) / tileSize);
   // add start tile, add end tile, add all tiles inbetween
@@ -288,12 +287,12 @@ export const setActiveTool = (toolIdx) => {
   const canvas_wrapper = document.getElementById("canvas_wrapper");
 
   _.mul$ACTIVE_TOOL = toolIdx;
-  const actTool = tagInput(
-    force(toolButtonsWrapper).querySelector(`input[id="tool${toolIdx}"]`)
-  );
+  const actTool = toolButtonsWrapper.querySelector(
+    `input[id="tool${toolIdx}"]`
+  ) as HTMLInputElement;
 
   if (actTool) actTool.checked = true;
-  force(canvas_wrapper).setAttribute(
+  canvas_wrapper.setAttribute(
     "isDraggable",
     `${_.mul$ACTIVE_TOOL === TOOLS.PAN}`
   );
@@ -301,8 +300,8 @@ export const setActiveTool = (toolIdx) => {
 };
 
 export const updateSelection = (autoSelectTool = true) => {
-  const tilesetDataSel = force(_.init$tilesetDataSel);
-  const tilesetSelection = force(_.init$tilesetSelection);
+  const tilesetDataSel = _.init$tilesetDataSel;
+  const tilesetSelection = _.init$tilesetSelection;
   if (!_.mul$tileSets[tilesetDataSel.value]) return;
   const selected = _.mul$selection[0];
   if (!selected) return;
@@ -330,9 +329,9 @@ export const updateSelection = (autoSelectTool = true) => {
 
   // show/hide param editor
 
-  if (force(_.init$tileDataSel).value === "frames" && _.getTile$editedEntity)
-    force(_.init$objectParametersEditor).classList.add("entity");
-  else force(_.init$objectParametersEditor).classList.remove("entity");
+  if (_.init$tileDataSel.value === "frames" && _.getTile$editedEntity)
+    _.init$objectParametersEditor.classList.add("entity");
+  else _.init$objectParametersEditor.classList.remove("entity");
   onUpdateState();
 };
 
@@ -366,7 +365,7 @@ export const removeTile = (key) => {
       .animatedTiles[key];
 };
 
-const addSelectedTiles = (key, tiles) => {
+const addSelectedTiles = (key, tiles?) => {
   const [x, y] = key.split("-");
   const tilesPatch = tiles || _.mul$selection; // tiles is opt override for selection for fancy things like random patch of tiles
   const { x: startX, y: startY } = tilesPatch[0]; // add selection override
@@ -376,8 +375,8 @@ const addSelectedTiles = (key, tiles) => {
     tilesPatch[0];
   for (let ix = 0; ix < selWidth; ix++) {
     for (let iy = 0; iy < selHeight; iy++) {
-      const isFlippedX = force(
-        tagInput(document.getElementById("toggleFlipX"))
+      const isFlippedX = (
+        document.getElementById("toggleFlipX") as HTMLInputElement
       ).checked;
       const tileX = isFlippedX ? Number(x) - ix : Number(x) + ix; //placed in reverse when flipped on x
       const coordKey = `${tileX}-${Number(y) + iy}`;
@@ -394,17 +393,15 @@ const addSelectedTiles = (key, tiles) => {
 };
 
 export const getCurrentFrames = () =>
-  _.mul$tileSets[force(_.init$tilesetDataSel).value]?.frames[
-    force(_.init$tileFrameSel).value
+  _.mul$tileSets[_.init$tilesetDataSel.value]?.frames[
+    _.init$tileFrameSel.value
   ];
 
 export const getSelectedFrameCount = () => getCurrentFrames()?.frameCount || 1;
 
 export const shouldNotAddAnimatedTile = () =>
-  (force(_.init$tileDataSel).value !== "frames" &&
-    getSelectedFrameCount() !== 1) ||
-  Object.keys(_.mul$tileSets[force(_.init$tilesetDataSel).value]?.frames)
-    .length === 0;
+  (_.init$tileDataSel.value !== "frames" && getSelectedFrameCount() !== 1) ||
+  Object.keys(_.mul$tileSets[_.init$tilesetDataSel.value]?.frames).length === 0;
 
 export const addTile = (key) => {
   if (shouldNotAddAnimatedTile()) {
@@ -423,7 +420,7 @@ export const addTile = (key) => {
       key
     ] = {
       ...getCurrentFrames(),
-      isFlippedX: force(tagInput(document.getElementById("toggleFlipX")))
+      isFlippedX: (document.getElementById("toggleFlipX") as HTMLInputElement)
         .checked,
       layer: _.setLayer$currentLayer,
       xPos: Number(x) * _.mul$SIZE_OF_CROP,
@@ -439,8 +436,7 @@ export const addRandomTile = (key) => {
       _.mul$selection[Math.floor(Math.random() * _.mul$selection.length)];
   } else {
     // do the same, but add random from frames instead
-    const tilesetTiles =
-      _.mul$tileSets[force(_.init$tilesetDataSel).value].tileData;
+    const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel.value].tileData;
     const { frameCount, tiles, width } = getCurrentFrames();
     const randOffset = Math.floor(Math.random() * frameCount);
     const randXOffsetTiles = tiles.map(
@@ -453,7 +449,7 @@ export const addRandomTile = (key) => {
 export const fillEmptyOrSameTiles = (key) => {
   const pickedTile =
     _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].tiles[key];
-  const [w, h] = [_.mul$mapTileWidth, _.mul$mapTileHeight].map(force);
+  const [w, h] = [_.mul$mapTileWidth, _.mul$mapTileHeight];
   Array.from({ length: w * h }, (x, i) => i).map((tile) => {
     const x = tile % w;
     const y = Math.floor(tile / w);
@@ -487,28 +483,27 @@ export const fillEmptyOrSameTiles = (key) => {
 };
 
 export const updateTilesetGridContainer = () => {
-  const viewMode = force(_.init$tileDataSel).value;
+  const viewMode = _.init$tileDataSel.value;
 
-  const tilesetData = _.mul$tileSets[force(_.init$tilesetDataSel).value];
+  const tilesetData = _.mul$tileSets[_.init$tilesetDataSel.value];
   if (!tilesetData) return;
 
   const { tileCount, gridWidth, tileData, tags } = tilesetData;
   // console.log("COUNT", tileCount)
   const hideSymbols =
     !_.toggleSymbolsVisible$DISPLAY_SYMBOLS || shouldHideSymbols();
-  const canvas = force(tagCanvas(document.getElementById("tilesetCanvas")));
+  const canvas = document.getElementById("tilesetCanvas") as HTMLCanvasElement;
 
-  const img =
-    _.reloadTilesets$TILESET_ELEMENTS[force(_.init$tilesetDataSel).value];
+  const img = _.reloadTilesets$TILESET_ELEMENTS[_.init$tilesetDataSel.value];
 
   canvas.width = img.width * _.mul$ZOOM;
   canvas.height = img.height * _.mul$ZOOM;
 
-  const ctx = force(canvas.getContext("2d"));
+  const ctx = canvas.getContext("2d");
   if (_.mul$ZOOM !== 1) {
-    any(ctx).webkitImageSmoothingEnabled = false;
-    any(ctx).mozImageSmoothingEnabled = false;
-    any(ctx).msImageSmoothingEnabled = false;
+    (ctx as any).webkitImageSmoothingEnabled = false;
+    (ctx as any).mozImageSmoothingEnabled = false;
+    (ctx as any).msImageSmoothingEnabled = false;
     ctx.imageSmoothingEnabled = false;
   }
 
@@ -567,9 +562,9 @@ export const updateTilesetGridContainer = () => {
 };
 
 export const selectMode = (mode = "") => {
-  if (mode !== "") force(_.init$tileDataSel).value = mode;
-  force(document.getElementById("tileFrameSelContainer")).style.display =
-    force(_.init$tileDataSel).value === "frames" ? "flex" : "none";
+  if (mode !== "") _.init$tileDataSel.value = mode;
+  document.getElementById("tileFrameSelContainer").style.display =
+    _.init$tileDataSel.value === "frames" ? "flex" : "none";
   // tilesetContainer.style.top = tileDataSel.value === "frames" ? "45px" : "0";
   updateTilesetGridContainer();
 };
@@ -580,7 +575,7 @@ export const downloadAsTextFile = (input, fileName = "tilemap-editor.json") => {
     encodeURIComponent(
       typeof input === "string" ? input : JSON.stringify(input)
     );
-  const dlAnchorElem = force(document.getElementById("downloadAnchorElem"));
+  const dlAnchorElem = document.getElementById("downloadAnchorElem");
   dlAnchorElem.setAttribute("href", dataStr);
   dlAnchorElem.setAttribute("download", fileName);
   dlAnchorElem.click();
@@ -615,31 +610,33 @@ export const getTilesAnalisis = (ctx, width, height, sizeOfTile) => {
 export const updateMapSize = (size) => {
   if (size?.mapWidth && size?.mapWidth > 1) {
     _.mul$mapTileWidth = size?.mapWidth;
-    _.mul$WIDTH = force(_.mul$mapTileWidth) * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
+    _.mul$WIDTH = _.mul$mapTileWidth * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
     _.mul$maps[_.mul$ACTIVE_MAP].mapWidth = _.mul$mapTileWidth;
-    force(
-      tag(document.querySelector(".canvas_resizer[resizerdir='x']"))
+    document.querySelector<HTMLElement>(
+      ".canvas_resizer[resizerdir='x']"
     ).style.left = `${_.mul$WIDTH}px`;
-    force(
-      tagInput(document.querySelector(".canvas_resizer[resizerdir='x'] input"))
+    (
+      document.querySelector(
+        ".canvas_resizer[resizerdir='x'] input"
+      ) as HTMLInputElement
     ).value = String(_.mul$mapTileWidth);
-    force(tagInput(document.getElementById("canvasWidthInp"))).value = String(
-      _.mul$mapTileWidth
-    );
+    (document.getElementById("canvasWidthInp") as HTMLInputElement).value =
+      String(_.mul$mapTileWidth);
   }
   if (size?.mapHeight && size?.mapHeight > 1) {
     _.mul$mapTileHeight = size?.mapHeight;
-    _.mul$HEIGHT = force(_.mul$mapTileHeight) * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
+    _.mul$HEIGHT = _.mul$mapTileHeight * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
     _.mul$maps[_.mul$ACTIVE_MAP].mapHeight = _.mul$mapTileHeight;
-    force(
-      tag(document.querySelector(".canvas_resizer[resizerdir='y']"))
+    document.querySelector<HTMLElement>(
+      ".canvas_resizer[resizerdir='y']"
     ).style.top = `${_.mul$HEIGHT}px`;
-    force(
-      tagInput(document.querySelector(".canvas_resizer[resizerdir='y'] input"))
+    (
+      document.querySelector(
+        ".canvas_resizer[resizerdir='y'] input"
+      ) as HTMLInputElement
     ).value = String(_.mul$mapTileHeight);
-    force(tagInput(document.getElementById("canvasHeightInp"))).value = String(
-      _.mul$mapTileHeight
-    );
+    (document.getElementById("canvasHeightInp") as HTMLInputElement).value =
+      String(_.mul$mapTileHeight);
   }
   draw();
 };
@@ -695,8 +692,8 @@ export const addToUndoStack = () => {
 
 export const updateZoom = () => {
   const [tilesetImage, tilesetContainer] = [
-    force(_.init$tilesetImage),
-    force(_.init$tilesetContainer),
+    _.init$tilesetImage,
+    _.init$tilesetContainer,
   ];
   // tilesetImage.style = `transform: scale(${_.mul$ZOOM});transform-origin: left top;image-rendering: auto;image-rendering: crisp-edges;image-rendering: pixelated;`;
   tilesetImage.setAttribute(
@@ -705,25 +702,24 @@ export const updateZoom = () => {
   );
   tilesetContainer.style.width = `${tilesetImage.width * _.mul$ZOOM}px`;
   tilesetContainer.style.height = `${tilesetImage.height * _.mul$ZOOM}px`;
-  force(document.getElementById("zoomLabel")).innerText = `${_.mul$ZOOM}x`;
+  document.getElementById("zoomLabel").innerText = `${_.mul$ZOOM}x`;
   updateTilesetGridContainer();
   updateSelection(false);
   updateMapSize({
     mapWidth: _.mul$mapTileWidth,
     mapHeight: _.mul$mapTileHeight,
   });
-  _.mul$WIDTH = force(_.mul$mapTileWidth) * _.mul$SIZE_OF_CROP * _.mul$ZOOM; // needed when setting zoom?
-  _.mul$HEIGHT = force(_.mul$mapTileHeight) * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
+  _.mul$WIDTH = _.mul$mapTileWidth * _.mul$SIZE_OF_CROP * _.mul$ZOOM; // needed when setting zoom?
+  _.mul$HEIGHT = _.mul$mapTileHeight * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
   _.mul$zoomIndex =
     ZOOM_LEVELS.indexOf(_.mul$ZOOM) === -1
       ? 0
       : ZOOM_LEVELS.indexOf(_.mul$ZOOM);
 };
 
-export const getCurrentAnimation = (getAnim) =>
-  _.mul$tileSets[force(_.init$tilesetDataSel).value]?.frames[
-    force(_.init$tileFrameSel).value
-  ]?.animations?.[getAnim || force(_.init$tileAnimSel).value];
+export const getCurrentAnimation = (getAnim?) =>
+  _.mul$tileSets[_.init$tilesetDataSel.value]?.frames[_.init$tileFrameSel.value]
+    ?.animations?.[getAnim || _.init$tileAnimSel.value];
 
 export const updateTilesetDataList = (populateFrames = false) => {
   const populateWithOptions = (selectEl, options, newContent) => {
@@ -743,7 +739,7 @@ export const updateTilesetDataList = (populateFrames = false) => {
       selectEl.value = value;
   };
 
-  const tilesetDataSel = force(_.init$tilesetDataSel);
+  const tilesetDataSel = _.init$tilesetDataSel;
 
   if (!populateFrames)
     populateWithOptions(
@@ -761,14 +757,13 @@ export const updateTilesetDataList = (populateFrames = false) => {
     );
     populateWithOptions(
       _.init$tileAnimSel,
-      _.mul$tileSets[tilesetDataSel.value]?.frames[
-        force(_.init$tileFrameSel).value
-      ]?.animations,
+      _.mul$tileSets[tilesetDataSel.value]?.frames[_.init$tileFrameSel.value]
+        ?.animations,
       ""
     );
   }
 
-  force(tagInput(document.getElementById("tileFrameCount"))).value =
+  (document.getElementById("tileFrameCount") as HTMLInputElement).value =
     getCurrentFrames()?.frameCount || 1;
   const currentAnim = getCurrentAnimation();
   // FIXME: ???
@@ -830,20 +825,17 @@ export const reevaluateTilesetsData = () => {
 };
 
 export const setCropSize = (newSize) => {
-  if (
-    newSize === _.mul$SIZE_OF_CROP &&
-    force(_.init$cropSize).value === newSize
-  )
+  if (newSize === _.mul$SIZE_OF_CROP && _.init$cropSize.value === newSize)
     return;
-  _.mul$tileSets[force(_.init$tilesetDataSel).value].tileSize = newSize;
+  _.mul$tileSets[_.init$tilesetDataSel.value].tileSize = newSize;
   _.mul$IMAGES.forEach((ts, idx) => {
-    if (ts.src === force(_.init$tilesetImage).src)
+    if (ts.src === _.init$tilesetImage.src)
       _.mul$IMAGES[idx].tileSize = newSize;
   });
   _.mul$SIZE_OF_CROP = newSize;
-  force(_.init$cropSize).value = `${_.mul$SIZE_OF_CROP}`;
-  force(
-    tagInput(document.getElementById("gridCropSize"))
+  _.init$cropSize.value = `${_.mul$SIZE_OF_CROP}`;
+  (
+    document.getElementById("gridCropSize") as HTMLInputElement
   ).value = `${_.mul$SIZE_OF_CROP}`;
   // console.log("NEW SIZE", tilesetDataSel.value,tileSets[tilesetDataSel.value], newSize,ACTIVE_MAP, maps)
   updateZoom();
@@ -862,9 +854,9 @@ export const setLayer = (newLayer) => {
   else console.warn({ oldActivedLayer });
 
   const activeLayerLabel = document.getElementById("activeLayerLabel");
-  const layerOpacitySlider = tagInput(
-    document.getElementById("layerOpacitySlider")
-  );
+  const layerOpacitySlider = document.getElementById(
+    "layerOpacitySlider"
+  ) as HTMLInputElement;
   const layerOpacitySliderValue = document.getElementById(
     "layerOpacitySliderValue"
   );
@@ -872,7 +864,7 @@ export const setLayer = (newLayer) => {
   document
     .querySelector(`.layer[tile-layer="${newLayer}"]`)
     ?.classList.add("active");
-  force(activeLayerLabel).innerHTML = activeLayerLabelHTML(
+  activeLayerLabel.innerHTML = activeLayerLabelHTML(
     _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]
   );
   if (layerOpacitySlider) {
@@ -881,7 +873,7 @@ export const setLayer = (newLayer) => {
     layerOpacitySlider.addEventListener("change", (e) => {
       addToUndoStack();
 
-      force(layerOpacitySliderValue).innerText = target(e).value;
+      layerOpacitySliderValue.innerText = target(e).value;
 
       _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].opacity =
         Number(target(e).value);
@@ -912,7 +904,7 @@ export const updateLayers = () => {
     draw();
   };
 
-  force(_.init$layersElement).innerHTML = _.mul$maps[_.mul$ACTIVE_MAP].layers
+  _.init$layersElement.innerHTML = _.mul$maps[_.mul$ACTIVE_MAP].layers
     .map((layer, index) =>
       layersElementHTML({
         layer,
@@ -928,15 +920,15 @@ export const updateLayers = () => {
     const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${index}`);
     const trashLayerBtn = document.getElementById(`trashLayerBtn-${index}`);
 
-    force(selectLayerBtn).addEventListener("click", (e) => {
+    selectLayerBtn.addEventListener("click", (e) => {
       setLayer(target(e).getAttribute("tile-layer"));
       addToUndoStack();
     });
-    force(setLayerVisBtn).addEventListener("click", (e) => {
+    setLayerVisBtn.addEventListener("click", (e) => {
       setLayerIsVisible({ draw }, !!target(e).getAttribute("vis-layer"));
       addToUndoStack();
     });
-    force(trashLayerBtn).addEventListener("click", (e) => {
+    trashLayerBtn.addEventListener("click", (e) => {
       trashLayer(target(e).getAttribute("trash-layer"));
       addToUndoStack();
     });
@@ -947,7 +939,7 @@ export const updateLayers = () => {
 
 export const getTile = (key, allLayers = false) => {
   const layers = _.mul$maps[_.mul$ACTIVE_MAP].layers;
-  _.getTile$editedEntity = any(undefined); // FIXME: type
+  _.getTile$editedEntity = undefined;
   const clicked = allLayers
     ? [...layers].reverse().find((layer, index) => {
         if (layer.animatedTiles && key in layer.animatedTiles) {
@@ -965,7 +957,7 @@ export const getTile = (key, allLayers = false) => {
     _.mul$selection = [clicked];
 
     // console.log("clicked", clicked, "entity data",editedEntity)
-    force(tagInput(document.getElementById("toggleFlipX"))).checked =
+    (document.getElementById("toggleFlipX") as HTMLInputElement).checked =
       !!clicked?.isFlippedX;
     // TODO switch to different tileset if its from a different one
     // if(clicked.tilesetIdx !== tilesetDataSel.value) {
@@ -979,10 +971,10 @@ export const getTile = (key, allLayers = false) => {
   } else if (_.getTile$editedEntity) {
     // console.log("Animated tile found", editedEntity)
     _.mul$selection = _.getTile$editedEntity.tiles;
-    force(tagInput(document.getElementById("toggleFlipX"))).checked =
+    (document.getElementById("toggleFlipX") as HTMLInputElement).checked =
       _.getTile$editedEntity.isFlippedX;
     setLayer(_.getTile$editedEntity.layer);
-    force(_.init$tileFrameSel).value = _.getTile$editedEntity.name;
+    _.init$tileFrameSel.value = _.getTile$editedEntity.name;
     updateSelection();
     selectMode("frames");
     return true;
@@ -993,7 +985,7 @@ export const getTile = (key, allLayers = false) => {
 
 export const setActiveMap = (id) => {
   _.mul$ACTIVE_MAP = id;
-  force(tagInput(document.getElementById("gridColorSel"))).value =
+  (document.getElementById("gridColorSel") as HTMLInputElement).value =
     _.mul$maps[_.mul$ACTIVE_MAP].gridColor || "#00FFFF";
   draw();
   updateMapSize({
@@ -1037,7 +1029,7 @@ export const reloadTilesets = () => {
   };
 
   _.reloadTilesets$TILESET_ELEMENTS = [];
-  force(_.init$tilesetDataSel).innerHTML = "";
+  _.init$tilesetDataSel.innerHTML = "";
   // Use to prevent old data from erasure
   const oldTilesets = { ..._.mul$tileSets };
   _.mul$tileSets = {};
@@ -1047,7 +1039,7 @@ export const reloadTilesets = () => {
     const newOpt = document.createElement("option");
     newOpt.innerText = tsImage.name || `tileset ${idx}`;
     newOpt.value = `${idx}`;
-    force(_.init$tilesetDataSel).appendChild(newOpt);
+    _.init$tilesetDataSel.appendChild(newOpt);
     const tilesetImgElement = document.createElement("img");
     tilesetImgElement.src = tsImage.src;
     tilesetImgElement.crossOrigin = "Anonymous";
@@ -1084,13 +1076,13 @@ export const reloadTilesets = () => {
     });
     // console.log("POPULATED", tileSets)
     reevaluateTilesetsData();
-    force(_.init$tilesetImage).src = _.reloadTilesets$TILESET_ELEMENTS[0].src;
-    force(_.init$tilesetImage).crossOrigin = "Anonymous";
+    _.init$tilesetImage.src = _.reloadTilesets$TILESET_ELEMENTS[0].src;
+    _.init$tilesetImage.crossOrigin = "Anonymous";
     updateSelection(false);
     updateTilesetGridContainer();
   });
   // finally current tileset loaded
-  force(_.init$tilesetImage).addEventListener("load", () => {
+  _.init$tilesetImage.addEventListener("load", () => {
     draw();
     updateLayers();
     if (_.mul$selection.length === 0) _.mul$selection = [getTileData(0, 0)];
@@ -1098,11 +1090,11 @@ export const reloadTilesets = () => {
     updateTilesetDataList();
     updateTilesetDataList(true);
     updateTilesetGridContainer();
-    const tilesetImage = force(_.init$tilesetImage);
-    force(
-      document.getElementById("tilesetSrcLabel")
+    const tilesetImage = _.init$tilesetImage;
+    document.getElementById(
+      "tilesetSrcLabel"
     ).innerHTML = `src: <a href="${tilesetImage.src}">${tilesetImage.src}</a>`;
-    force(document.getElementById("tilesetSrcLabel")).title = tilesetImage.src;
+    document.getElementById("tilesetSrcLabel").title = tilesetImage.src;
     const tilesetExtraInfo = _.mul$IMAGES.find(
       (ts) => ts.src === tilesetImage.src
     );
@@ -1111,32 +1103,31 @@ export const reloadTilesets = () => {
 
     if (tilesetExtraInfo) {
       if (tilesetExtraInfo.link) {
-        force(
-          document.getElementById("tilesetHomeLink")
+        document.getElementById(
+          "tilesetHomeLink"
         ).innerHTML = `link: <a href="${tilesetExtraInfo.link}">${tilesetExtraInfo.link}</a> `;
-        force(document.getElementById("tilesetHomeLink")).title =
+        document.getElementById("tilesetHomeLink").title =
           tilesetExtraInfo.link;
       } else {
-        force(document.getElementById("tilesetHomeLink")).innerHTML = "";
+        document.getElementById("tilesetHomeLink").innerHTML = "";
       }
       if (tilesetExtraInfo.description) {
-        force(document.getElementById("tilesetDescriptionLabel")).innerText =
+        document.getElementById("tilesetDescriptionLabel").innerText =
           tilesetExtraInfo.description;
-        force(document.getElementById("tilesetDescriptionLabel")).title =
+        document.getElementById("tilesetDescriptionLabel").title =
           tilesetExtraInfo.description;
       } else {
-        force(document.getElementById("tilesetDescriptionLabel")).innerText =
-          "";
+        document.getElementById("tilesetDescriptionLabel").innerText = "";
       }
       if (tilesetExtraInfo.tileSize) {
         setCropSize(tilesetExtraInfo.tileSize);
       }
     }
-    setCropSize(_.mul$tileSets[force(_.init$tilesetDataSel).value].tileSize);
+    setCropSize(_.mul$tileSets[_.init$tilesetDataSel.value].tileSize);
     updateZoom();
-    force(
-      tag(document.querySelector('.canvas_resizer[resizerdir="x"]'))
-      // ).style = `left:${_.mul$WIDTH}px;`;
+    // ).style = `left:${_.mul$WIDTH}px;`;
+    document.querySelector<HTMLElement>(
+      '.canvas_resizer[resizerdir="x"]'
     ).style.left = `${_.mul$WIDTH}px;`;
 
     if (_.mul$undoStepPosition === -1) addToUndoStack(); //initial undo stack entry
@@ -1144,7 +1135,7 @@ export const reloadTilesets = () => {
 };
 
 export const updateMaps = () => {
-  const mapsDataSel = force(_.init$mapsDataSel);
+  const mapsDataSel = _.init$mapsDataSel;
   mapsDataSel.innerHTML = "";
   let lastMap = _.mul$ACTIVE_MAP;
   Object.keys(_.mul$maps).forEach((key, idx) => {
@@ -1156,7 +1147,7 @@ export const updateMaps = () => {
   });
   mapsDataSel.value = lastMap;
   setActiveMap(lastMap);
-  force(tagInput(document.getElementById("removeMapBtn"))).disabled =
+  (document.getElementById("removeMapBtn") as HTMLInputElement).disabled =
     Object.keys(_.mul$maps).length === 1;
 };
 
