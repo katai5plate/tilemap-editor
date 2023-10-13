@@ -2,6 +2,7 @@ import { RANDOM_LETTERS, TOOLS, ZOOM_LEVELS } from "../constants/enums.js";
 import { activeLayerLabelHTML, layersElementHTML } from "../constants/html.js";
 import { target } from "../helper.js";
 import _ from "./state.js";
+import { Tile, XY } from "./type.js";
 import { decoupleReferenceFromObj, drawGrid, getEmptyLayer } from "./utils.js";
 
 export const getEmptyMap = (
@@ -581,7 +582,15 @@ export const downloadAsTextFile = (input, fileName = "tilemap-editor.json") => {
 };
 
 export const getTilesAnalisis = (ctx, width, height, sizeOfTile) => {
-  const analizedTiles = {};
+  const analizedTiles = {} as Record<
+    string,
+    {
+      uuid: number;
+      coords: XY[];
+      times: number;
+      tileData: ImageData;
+    }
+  >;
   let uuid = 0;
   for (let y = 0; y < height; y += sizeOfTile) {
     for (let x = 0; x < width; x += sizeOfTile) {
@@ -867,8 +876,9 @@ export const setLayer = (newLayer) => {
     _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]
   );
   if (layerOpacitySlider) {
-    layerOpacitySlider.value =
-      _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]?.opacity;
+    layerOpacitySlider.value = `${
+      _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]?.opacity
+    }`;
     layerOpacitySlider.addEventListener("change", (e) => {
       addToUndoStack();
 

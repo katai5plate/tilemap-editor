@@ -1,6 +1,6 @@
-import { tilemapEditorRootHTML } from "../constants/html.js";
-import { toBase64, drawGrid, getEmptyLayer } from "./utils.js";
-import _ from "./state.js";
+import { tilemapEditorRootHTML } from "../../constants/html.js";
+import { toBase64, drawGrid, getEmptyLayer } from "../utils.js";
+import _ from "../state.js";
 import {
   getEmptyMap,
   getAppState,
@@ -33,22 +33,13 @@ import {
   reloadTilesets,
   updateMaps,
   restoreFromUndoStackData,
-} from "./nodep.js";
-import { TOOLS, ZOOM_LEVELS } from "../constants/enums.js";
+} from "./../nodep.js";
+import { TOOLS, ZOOM_LEVELS } from "../../constants/enums.js";
+import { QS, Tile, XY } from "../type";
+import { target } from "../../helper.js";
 
-const main = function (exports) {
-  exports.toBase64 = toBase64;
-
-  Object.keys(_.state$el).forEach((key) => {
-    _.state$el[key] = () => document.getElementById(key);
-  });
-
-  exports.getLayers = () => {
-    return _.mul$maps[_.mul$ACTIVE_MAP].layers;
-  };
-
-  // Create the tilemap-editor in the dom and its events
-  exports.init = (
+export default (exports) =>
+  (
     attachToId,
     {
       tileMapData, // the main data
@@ -62,7 +53,7 @@ const main = function (exports) {
       tileMapExporters,
       tileMapImporters,
       onUpdate = () => {},
-      onMouseUp = null,
+      onMouseUp = null as () => void,
       appState,
     }
   ) => {
@@ -74,7 +65,7 @@ const main = function (exports) {
       onDrag = null,
       limitX = false,
       limitY = false,
-      onRelease = null,
+      onRelease = null as (xy: XY) => void,
     }) => {
       element.setAttribute("isDraggable", isDrag);
       let isMouseDown = false;
@@ -115,7 +106,7 @@ const main = function (exports) {
         isMouseDown = true;
       };
       const onMouseUp = () => {
-        if (!element.getAttribute("isDraggable") === "false") return;
+        if (!(element.getAttribute("isDraggable") === "false")) return;
         isMouseDown = false;
         elementX = parseInt(element.style.left) || 0;
         elementY = parseInt(element.style.top) || 0;
@@ -411,7 +402,7 @@ const main = function (exports) {
         clearUndoStack();
         _.mul$WIDTH = _.init$canvas.width * _.mul$ZOOM;
         _.mul$HEIGHT = _.init$canvas.height * _.mul$ZOOM;
-        _.mul$selection = [{}];
+        _.mul$selection = [{} as Tile];
         _.mul$ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
         _.mul$maps = data
           ? { ...data.maps }
@@ -425,11 +416,14 @@ const main = function (exports) {
         _.mul$tileSets = data ? { ...data.tileSets } : {};
         reloadTilesets();
         _.init$tilesetDataSel.value = "0";
-        _.init$cropSize.value = data
-          ? _.mul$tileSets[_.init$tilesetDataSel.value]?.tileSize ||
-            _.mul$maps[_.mul$ACTIVE_MAP].tileSize
-          : _.mul$SIZE_OF_CROP;
-        document.getElementById("gridCropSize").value = _.init$cropSize.value;
+        _.init$cropSize.value = `${
+          data
+            ? _.mul$tileSets[_.init$tilesetDataSel.value]?.tileSize ||
+              _.mul$maps[_.mul$ACTIVE_MAP].tileSize
+            : _.mul$SIZE_OF_CROP
+        }`;
+        (document.getElementById("gridCropSize") as HTMLInputElement).value =
+          _.init$cropSize.value;
         updateMaps();
         updateMapSize({
           mapWidth: _.mul$maps[_.mul$ACTIVE_MAP].mapWidth,
@@ -474,7 +468,7 @@ const main = function (exports) {
       onSelectFiles: (setData, files) => {
         const readFile = new FileReader();
         readFile.onload = (e) => {
-          const json = JSON.parse(e.target.result);
+          const json = JSON.parse(target(e).result);
           setData(json);
         };
         readFile.readAsText(files[0]);
@@ -511,7 +505,7 @@ const main = function (exports) {
     });
     attachTo.className = "tilemap_editor_root";
     _.init$tilesetImage = document.createElement("img");
-    _.init$cropSize = document.getElementById("cropSize");
+    _.init$cropSize = document.getElementById("cropSize") as HTMLInputElement;
 
     _.init$confirmBtn = document.getElementById("confirmBtn");
     if (onApply) {
@@ -519,7 +513,7 @@ const main = function (exports) {
     } else {
       _.init$confirmBtn.style.display = "none";
     }
-    _.init$canvas = document.getElementById("mapCanvas");
+    _.init$canvas = document.getElementById("mapCanvas") as HTMLCanvasElement;
     _.init$tilesetContainer = document.querySelector(".tileset-container");
     _.init$tilesetSelection = document.querySelector(
       ".tileset-container-selection"
@@ -564,7 +558,9 @@ const main = function (exports) {
     };
     _.init$tilesetContainer.addEventListener("pointerup", (e) => {
       setTimeout(() => {
-        document.getElementById("tilesetDataDetails").open = false;
+        (
+          document.getElementById("tilesetDataDetails") as HTMLDetailsElement
+        ).open = false;
       }, 100);
 
       _.mul$selection = getSelectedTile(e);
@@ -615,10 +611,12 @@ const main = function (exports) {
       addLayer();
     });
     // Maps DATA callbacks
-    _.init$mapsDataSel = document.getElementById("mapsDataSel");
+    _.init$mapsDataSel = document.getElementById(
+      "mapsDataSel"
+    ) as HTMLSelectElement;
     _.init$mapsDataSel.addEventListener("change", (e) => {
       addToUndoStack();
-      setActiveMap(e.target.value);
+      setActiveMap(target(e).value);
       addToUndoStack();
     });
     document.getElementById("addMapBtn").addEventListener("click", () => {
@@ -661,7 +659,9 @@ const main = function (exports) {
       addToUndoStack();
     });
     // Tileset DATA Callbacks //tileDataSel
-    _.init$tileDataSel = document.getElementById("tileDataSel");
+    _.init$tileDataSel = document.getElementById(
+      "tileDataSel"
+    ) as HTMLSelectElement;
     _.init$tileDataSel.addEventListener("change", () => {
       selectMode();
     });
@@ -699,7 +699,9 @@ const main = function (exports) {
         }
       });
     // Tileset frames
-    _.init$tileFrameSel = document.getElementById("tileFrameSel");
+    _.init$tileFrameSel = document.getElementById(
+      "tileFrameSel"
+    ) as HTMLSelectElement;
     _.init$tileFrameSel.addEventListener("change", (e) => {
       _.state$el.tileFrameCount().value = getCurrentFrames()?.frameCount || 1;
       updateTilesetDataList(true);
@@ -800,12 +802,14 @@ const main = function (exports) {
     });
     _.state$el.tileFrameCount().addEventListener("change", (e) => {
       if (_.init$tileFrameSel.value === "") return;
-      getCurrentFrames().frameCount = Number(e.target.value);
+      getCurrentFrames().frameCount = Number(target(e).value);
       updateTilesetGridContainer();
     });
 
     // animations
-    _.init$tileAnimSel = document.getElementById("tileAnimSel");
+    _.init$tileAnimSel = document.getElementById(
+      "tileAnimSel"
+    ) as HTMLSelectElement;
     _.init$tileAnimSel.addEventListener("change", (e) => {
       //swap with tileAnimSel
       console.log("anim select", e, _.init$tileAnimSel.value);
@@ -905,10 +909,12 @@ const main = function (exports) {
       getCurrentAnimation().speed = _.state$el.animSpeed().value;
     });
     // Tileset SELECT callbacks
-    _.init$tilesetDataSel = document.getElementById("tilesetDataSel");
+    _.init$tilesetDataSel = document.getElementById(
+      "tilesetDataSel"
+    ) as HTMLSelectElement;
     _.init$tilesetDataSel.addEventListener("change", (e) => {
       _.init$tilesetImage.src =
-        _.reloadTilesets$TILESET_ELEMENTS[e.target.value].src;
+        _.reloadTilesets$TILESET_ELEMENTS[target(e).value].src;
       _.init$tilesetImage.crossOrigin = "Anonymous";
       updateTilesetDataList();
     });
@@ -933,11 +939,11 @@ const main = function (exports) {
     document
       .getElementById("tilesetReplaceInput")
       .addEventListener("change", (e) => {
-        toBase64(e.target.files[0]).then((base64Src) => {
+        toBase64(target(e).files[0]).then((base64Src) => {
           if (_.init_state$selectedTileSetLoader.onSelectImage) {
             _.init_state$selectedTileSetLoader.onSelectImage(
               replaceSelectedTileSet,
-              e.target.files[0],
+              target(e).files[0],
               base64Src
             );
           }
@@ -957,11 +963,11 @@ const main = function (exports) {
     document
       .getElementById("tilesetReadInput")
       .addEventListener("change", (e) => {
-        toBase64(e.target.files[0]).then((base64Src) => {
+        toBase64(target(e).files[0]).then((base64Src) => {
           if (_.init_state$selectedTileSetLoader.onSelectImage) {
             _.init_state$selectedTileSetLoader.onSelectImage(
               addNewTileSet,
-              e.target.files[0],
+              target(e).files[0],
               base64Src
             );
           }
@@ -976,7 +982,9 @@ const main = function (exports) {
         _.init_state$selectedTileSetLoader.prompt(addNewTileSet);
       }
     });
-    const tileSetLoadersSel = document.getElementById("tileSetLoadersSel");
+    const tileSetLoadersSel = document.getElementById(
+      "tileSetLoadersSel"
+    ) as HTMLSelectElement;
     Object.entries(_.init_state$apiTileSetLoaders).forEach(([key, loader]) => {
       const tsLoaderOption = document.createElement("option");
       tsLoaderOption.value = key;
@@ -990,7 +998,7 @@ const main = function (exports) {
       _.init_state$apiTileSetLoaders[tileSetLoadersSel.value];
     tileSetLoadersSel.addEventListener("change", (e) => {
       _.init_state$selectedTileSetLoader =
-        _.init_state$apiTileSetLoaders[e.target.value];
+        _.init_state$apiTileSetLoaders[target(e).value];
     });
     exports.tilesetLoaders = _.init_state$apiTileSetLoaders;
 
@@ -1030,12 +1038,12 @@ const main = function (exports) {
     document
       .getElementById("canvasWidthInp")
       .addEventListener("change", (e) => {
-        updateMapSize({ mapWidth: Number(e.target.value) });
+        updateMapSize({ mapWidth: Number(target(e).value) });
       });
     document
       .getElementById("canvasHeightInp")
       .addEventListener("change", (e) => {
-        updateMapSize({ mapHeight: Number(e.target.value) });
+        updateMapSize({ mapHeight: Number(target(e).value) });
       });
     // draggable({
     //   element: document.querySelector(".canvas_resizer[resizerdir='x']"),
@@ -1054,25 +1062,25 @@ const main = function (exports) {
     document
       .querySelector(".canvas_resizer[resizerdir='y'] input")
       .addEventListener("change", (e) => {
-        updateMapSize({ mapHeight: Number(e.target.value) });
+        updateMapSize({ mapHeight: Number(target(e).value) });
       });
     document
       .querySelector(".canvas_resizer[resizerdir='x'] input")
       .addEventListener("change", (e) => {
-        updateMapSize({ mapWidth: Number(e.target.value) });
+        updateMapSize({ mapWidth: Number(target(e).value) });
       });
     document
       .getElementById("toolButtonsWrapper")
       .addEventListener("click", (e) => {
-        console.log("ACTIVE_TOOL", e.target.value);
-        if (e.target.getAttribute("name") === "tool")
-          setActiveTool(Number(e.target.value));
+        console.log("ACTIVE_TOOL", target(e).value);
+        if (target(e).getAttribute("name") === "tool")
+          setActiveTool(Number(target(e).value));
       });
     document.getElementById("gridCropSize").addEventListener("change", (e) => {
-      setCropSize(Number(e.target.value));
+      setCropSize(Number(target(e).value));
     });
     _.init$cropSize.addEventListener("change", (e) => {
-      setCropSize(Number(e.target.value));
+      setCropSize(Number(target(e).value));
     });
 
     document
@@ -1105,7 +1113,7 @@ const main = function (exports) {
 
     const fileMenuDropDown = document.getElementById("fileMenuDropDown");
     const makeMenuItem = (name, value, description) => {
-      const menuItem = document.createElement("span");
+      const menuItem = document.createElement("span") as HTMLInputElement;
       menuItem.className = "item";
       menuItem.innerText = name;
       menuItem.title = description || name;
@@ -1113,7 +1121,7 @@ const main = function (exports) {
       fileMenuDropDown.appendChild(menuItem);
       return menuItem;
     };
-    Object.entries(tileMapExporters).forEach(([key, exporter]) => {
+    Object.entries(tileMapExporters).forEach(([key, exporter]: any) => {
       makeMenuItem(exporter.name, key, exporter.description).onclick = () => {
         exporter.transformer(getExportData());
       };
@@ -1123,7 +1131,7 @@ const main = function (exports) {
     exports.exporters = _.init_state$apiTileMapExporters;
 
     Object.entries(_.init_state$apiTileMapImporters).forEach(
-      ([key, importer]) => {
+      ([key, importer]: any) => {
         makeMenuItem(importer.name, key, importer.description).onclick = () => {
           if (importer.onSelectFiles) {
             const input = document.createElement("input");
@@ -1132,7 +1140,7 @@ const main = function (exports) {
             if (importer.acceptFile) input.accept = importer.acceptFile;
             input.style.display = "none";
             input.addEventListener("change", (e) => {
-              importer.onSelectFiles(loadData, e.target.files);
+              importer.onSelectFiles(loadData, target(e).files);
             });
             input.click();
           }
@@ -1141,7 +1149,7 @@ const main = function (exports) {
       }
     );
     document.getElementById("toggleFlipX").addEventListener("change", (e) => {
-      document.getElementById("flipBrushIndicator").style.transform = e.target
+      document.getElementById("flipBrushIndicator").style.transform = target(e)
         .checked
         ? "scale(-1, 1)"
         : "scale(1, 1)";
@@ -1153,12 +1161,12 @@ const main = function (exports) {
       }
     });
     document.getElementById("gridColorSel").addEventListener("change", (e) => {
-      console.log("grid col", e.target.value);
-      _.mul$maps[_.mul$ACTIVE_MAP].gridColor = e.target.value;
+      console.log("grid col", target(e).value);
+      _.mul$maps[_.mul$ACTIVE_MAP].gridColor = target(e).value;
       draw();
     });
     document.getElementById("showGrid").addEventListener("change", (e) => {
-      _.init$SHOW_GRID = e.target.checked;
+      _.init$SHOW_GRID = target(e).checked;
       draw();
     });
 
@@ -1196,17 +1204,3 @@ const main = function (exports) {
     };
     requestAnimationFrame(animateTiles);
   };
-
-  exports.getState = () => {
-    return getAppState();
-  };
-
-  exports.onUpdate = _.init$apiOnUpdateCallback;
-  exports.onMouseUp = _.init$apiOnMouseUp;
-
-  exports.getTilesets = () => _.mul$tileSets;
-};
-
-const exports = function () {};
-main(exports);
-export default exports;

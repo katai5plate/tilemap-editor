@@ -3,22 +3,17 @@
 // _.mul$ -- 複数個所で書き換わる
 // _.state$ -- 状態管理オブジェクト
 
-interface XY {
-  x: number;
-  y: number;
-}
-type Tile = XY & { tilesetIdx: number; tileSymbol: string };
-type QS<E> = E | null | undefined;
+import { Layer, QS, Tile, XY } from "./type";
 
 export default {
   state$el: {
-    tileFrameCount: "",
-    animStart: "",
-    animEnd: "",
-    renameTileFrameBtn: "",
-    renameTileAnimBtn: "",
-    animSpeed: "",
-    animLoop: "",
+    tileFrameCount: (() => {}) as () => HTMLInputElement,
+    animStart: (() => {}) as () => HTMLInputElement,
+    animEnd: (() => {}) as () => HTMLInputElement,
+    renameTileFrameBtn: (() => {}) as () => HTMLButtonElement,
+    renameTileAnimBtn: (() => {}) as () => HTMLButtonElement,
+    animSpeed: (() => {}) as () => HTMLInputElement,
+    animLoop: (() => {}) as () => HTMLInputElement,
   },
   init$tilesetImage: undefined as QS<HTMLImageElement>,
   init$canvas: undefined as QS<HTMLCanvasElement>,
@@ -40,10 +35,10 @@ export default {
   })[],
   mul$IMAGES: [{ src: "" }] as {
     src: string;
-    tileSize: number;
-    name: string;
-    link: string;
-    description: string;
+    tileSize?: number;
+    name?: string;
+    link?: string;
+    description?: string;
   }[],
   mul$ZOOM: 1,
   mul$SIZE_OF_CROP: 32,
@@ -57,7 +52,17 @@ export default {
   mul$selection: [] as Tile[],
   setLayer$currentLayer: 0,
   mul$isMouseDown: false,
-  mul$maps: {},
+  mul$maps: {} as {
+    [key: string]: {
+      name: string;
+      layers: Layer[];
+      mapWidth: number;
+      mapHeight: number;
+      tileSet?: unknown;
+      gridColor: string;
+      tileSize: number;
+    };
+  },
   mul$tileSets: {} as {
     [key: string]: {
       src: string;
@@ -75,12 +80,47 @@ export default {
       tileCount: number;
     };
   },
-  init_state$apiTileSetLoaders: {},
-  init_state$selectedTileSetLoader: {},
-  init_state$apiTileMapExporters: {},
-  init_state$apiTileMapImporters: {},
+  init_state$apiTileSetLoaders: {} as {
+    base64: {
+      name: string;
+      onSelectImage: (setSrc, file, base64) => void;
+    };
+  },
+  init_state$selectedTileSetLoader: {
+    onSelectImage: (() => {}) as (
+      replaceSelectedTileSet,
+      file,
+      base64Src
+    ) => void,
+    prompt: (() => {}) as (replaceSelectedTileSet) => void,
+  },
+  init_state$apiTileMapExporters: {} as {
+    exportAsImage: {
+      name: string;
+      transformer: () => void;
+    };
+    saveData: {
+      name: string;
+      transformer: () => void;
+    };
+    analizeTilemap: {
+      name: string;
+      transformer: () => void;
+    };
+    exportTilesFromMap: {
+      name: string;
+      transformer: () => void;
+    };
+  },
+  init_state$apiTileMapImporters: {} as {
+    openData: {
+      name: string;
+      onSelectFiles: (setData, files) => void;
+      acceptFile: string;
+    };
+  },
   init$apiOnUpdateCallback: (() => {}) as (...args: any) => void,
-  init$apiOnMouseUp: () => {},
+  init$apiOnMouseUp: (() => {}) as (getAppState, apiTileMapExporters) => void,
   getTile$editedEntity: undefined as
     | { tiles: any; isFlippedX: any; layer: any; name: any }
     | undefined,
@@ -94,6 +134,5 @@ export default {
     IMAGES;
   }[],
   mul$zoomIndex: 1,
-  /** @type {XY | null} */
-  init$tileSelectStart: null,
+  init$tileSelectStart: null as XY | null,
 };
