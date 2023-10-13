@@ -1,15 +1,8 @@
 import { tilemapEditorRootHTML } from "../constants/html.js";
-import {
-  toBase64,
-  drawGrid,
-  decoupleReferenceFromObj,
-  getEmptyLayer,
-} from "./utils.js";
+import { toBase64, drawGrid, getEmptyLayer } from "./utils.js";
 import _ from "./state.js";
-import {} from "./dep.js";
 import {
   getEmptyMap,
-  getTileData,
   getAppState,
   draw,
   getSelectedTile,
@@ -32,7 +25,6 @@ import {
   updateZoom,
   getCurrentAnimation,
   updateTilesetDataList,
-  reevaluateTilesetsData,
   setCropSize,
   setLayer,
   updateLayers,
