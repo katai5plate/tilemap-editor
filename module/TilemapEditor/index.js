@@ -55,52 +55,6 @@ const main = function (exports) {
     return _.mul$maps[_.mul$ACTIVE_MAP].layers;
   };
 
-  const undo = () => {
-    if (_.mul$undoStepPosition === 0) return;
-    _.mul$undoStepPosition -= 1;
-    restoreFromUndoStackData();
-  };
-  const redo = () => {
-    if (_.mul$undoStepPosition === _.clearUndoStack$undoStack.length - 1)
-      return;
-    _.mul$undoStepPosition += 1;
-    restoreFromUndoStackData();
-  };
-
-  const loadData = (data) => {
-    try {
-      clearUndoStack();
-      _.mul$WIDTH = _.init$canvas.width * _.mul$ZOOM;
-      _.mul$HEIGHT = _.init$canvas.height * _.mul$ZOOM;
-      _.mul$selection = [{}];
-      _.mul$ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
-      _.mul$maps = data
-        ? { ...data.maps }
-        : {
-            [_.mul$ACTIVE_MAP]: getEmptyMap(
-              "Map 1",
-              _.mul$mapTileWidth,
-              _.mul$mapTileHeight
-            ),
-          };
-      _.mul$tileSets = data ? { ...data.tileSets } : {};
-      reloadTilesets();
-      _.init$tilesetDataSel.value = "0";
-      _.init$cropSize.value = data
-        ? _.mul$tileSets[_.init$tilesetDataSel.value]?.tileSize ||
-          _.mul$maps[_.mul$ACTIVE_MAP].tileSize
-        : _.mul$SIZE_OF_CROP;
-      document.getElementById("gridCropSize").value = _.init$cropSize.value;
-      updateMaps();
-      updateMapSize({
-        mapWidth: _.mul$maps[_.mul$ACTIVE_MAP].mapWidth,
-        mapHeight: _.mul$maps[_.mul$ACTIVE_MAP].mapHeight,
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   // Create the tilemap-editor in the dom and its events
   exports.init = (
     attachToId,
@@ -446,6 +400,52 @@ const main = function (exports) {
       };
       console.log("Exported ", exportData);
       return exportData;
+    };
+
+    const undo = () => {
+      if (_.mul$undoStepPosition === 0) return;
+      _.mul$undoStepPosition -= 1;
+      restoreFromUndoStackData();
+    };
+    const redo = () => {
+      if (_.mul$undoStepPosition === _.clearUndoStack$undoStack.length - 1)
+        return;
+      _.mul$undoStepPosition += 1;
+      restoreFromUndoStackData();
+    };
+
+    const loadData = (data) => {
+      try {
+        clearUndoStack();
+        _.mul$WIDTH = _.init$canvas.width * _.mul$ZOOM;
+        _.mul$HEIGHT = _.init$canvas.height * _.mul$ZOOM;
+        _.mul$selection = [{}];
+        _.mul$ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
+        _.mul$maps = data
+          ? { ...data.maps }
+          : {
+              [_.mul$ACTIVE_MAP]: getEmptyMap(
+                "Map 1",
+                _.mul$mapTileWidth,
+                _.mul$mapTileHeight
+              ),
+            };
+        _.mul$tileSets = data ? { ...data.tileSets } : {};
+        reloadTilesets();
+        _.init$tilesetDataSel.value = "0";
+        _.init$cropSize.value = data
+          ? _.mul$tileSets[_.init$tilesetDataSel.value]?.tileSize ||
+            _.mul$maps[_.mul$ACTIVE_MAP].tileSize
+          : _.mul$SIZE_OF_CROP;
+        document.getElementById("gridCropSize").value = _.init$cropSize.value;
+        updateMaps();
+        updateMapSize({
+          mapWidth: _.mul$maps[_.mul$ACTIVE_MAP].mapWidth,
+          mapHeight: _.mul$maps[_.mul$ACTIVE_MAP].mapHeight,
+        });
+      } catch (e) {
+        console.error(e);
+      }
     };
 
     // Attach
