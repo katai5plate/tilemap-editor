@@ -49,6 +49,7 @@ export default {
   mul$mapTileHeight: undefined,
   /** @type {number | undefined} */
   mul$mapTileWidth: undefined,
+  /** @type {(HTMLImageElement & {tileSize?})[]} */
   reloadTilesets$TILESET_ELEMENTS: [],
   mul$IMAGES: [{ src: "" }],
   mul$ZOOM: 1,
@@ -73,6 +74,7 @@ export default {
   /** @type {(...args: any) => void} */
   init$apiOnUpdateCallback: () => {},
   init$apiOnMouseUp: () => {},
+  /** @type {{tiles, isFlippedX, layer, name} | null} */
   getTile$editedEntity: undefined,
   updateSelection$selectionSize: [1, 1],
   mul$undoStepPosition: -1,

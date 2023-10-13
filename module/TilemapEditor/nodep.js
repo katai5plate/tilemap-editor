@@ -1,8 +1,9 @@
 //@ts-check
 import { RANDOM_LETTERS, TOOLS, ZOOM_LEVELS } from "../constants/enums.js";
-import { any, force, tag, tagCanvas, tagInput } from "../helper.js";
+import { activeLayerLabelHTML, layersElementHTML } from "../constants/html.js";
+import { any, force, tag, tagCanvas, tagInput, target } from "../helper.js";
 import _ from "./state.js";
-import { drawGrid, getEmptyLayer } from "./utils.js";
+import { decoupleReferenceFromObj, drawGrid, getEmptyLayer } from "./utils.js";
 
 export const getEmptyMap = (
   name = "map",
@@ -565,8 +566,8 @@ export const updateTilesetGridContainer = () => {
   });
 };
 
-export const selectMode = (mode = null) => {
-  if (mode !== null) force(_.init$tileDataSel).value = mode;
+export const selectMode = (mode = "") => {
+  if (mode !== "") force(_.init$tileDataSel).value = mode;
   force(document.getElementById("tileFrameSelContainer")).style.display =
     force(_.init$tileDataSel).value === "frames" ? "flex" : "none";
   // tilesetContainer.style.top = tileDataSel.value === "frames" ? "45px" : "0";
@@ -854,5 +855,350 @@ export const setCropSize = (newSize) => {
   // console.log(tileSets, IMAGES)
   reevaluateTilesetsData();
   updateTilesetDataList();
+  draw();
+};
+
+export const setLayer = (newLayer) => {
+  _.setLayer$currentLayer = Number(newLayer);
+
+  const oldActivedLayer = document.querySelector(".layer.active");
+  if (oldActivedLayer) oldActivedLayer.classList.remove("active");
+  else console.warn({ oldActivedLayer });
+
+  const activeLayerLabel = document.getElementById("activeLayerLabel");
+  const layerOpacitySlider = tagInput(
+    document.getElementById("layerOpacitySlider")
+  );
+  const layerOpacitySliderValue = document.getElementById(
+    "layerOpacitySliderValue"
+  );
+
+  document
+    .querySelector(`.layer[tile-layer="${newLayer}"]`)
+    ?.classList.add("active");
+  force(activeLayerLabel).innerHTML = activeLayerLabelHTML(
+    _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]
+  );
+  if (layerOpacitySlider) {
+    layerOpacitySlider.value =
+      _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]?.opacity;
+    layerOpacitySlider.addEventListener("change", (e) => {
+      addToUndoStack();
+
+      force(layerOpacitySliderValue).innerText = target(e).value;
+
+      _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].opacity =
+        Number(target(e).value);
+      draw();
+      updateLayers();
+    });
+  } else console.warn({ layerOpacitySlider });
+};
+
+export const updateLayers = () => {
+  const setLayerIsVisible = (layer, override = false) => {
+    const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${layer}`);
+    if (!setLayerVisBtn) throw new Error("dom not found");
+    const layerNumber = Number(layer);
+    _.mul$maps[_.mul$ACTIVE_MAP].layers[layerNumber].visible =
+      override || !_.mul$maps[_.mul$ACTIVE_MAP].layers[layerNumber].visible;
+    setLayerVisBtn.innerHTML = _.mul$maps[_.mul$ACTIVE_MAP].layers[layerNumber]
+      .visible
+      ? "👁️"
+      : "👓";
+    draw();
+  };
+  const trashLayer = (layer) => {
+    const layerNumber = Number(layer);
+    _.mul$maps[_.mul$ACTIVE_MAP].layers.splice(layerNumber, 1);
+    updateLayers();
+    setLayer(_.mul$maps[_.mul$ACTIVE_MAP].layers.length - 1);
+    draw();
+  };
+
+  force(_.init$layersElement).innerHTML = _.mul$maps[_.mul$ACTIVE_MAP].layers
+    .map((layer, index) =>
+      layersElementHTML({
+        layer,
+        index,
+        enableButton: _.mul$maps[_.mul$ACTIVE_MAP].layers.length > 1,
+      })
+    )
+    .reverse()
+    .join("\n");
+
+  _.mul$maps[_.mul$ACTIVE_MAP].layers.forEach((_, index) => {
+    const selectLayerBtn = document.getElementById(`selectLayerBtn-${index}`);
+    const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${index}`);
+    const trashLayerBtn = document.getElementById(`trashLayerBtn-${index}`);
+
+    force(selectLayerBtn).addEventListener("click", (e) => {
+      setLayer(target(e).getAttribute("tile-layer"));
+      addToUndoStack();
+    });
+    force(setLayerVisBtn).addEventListener("click", (e) => {
+      setLayerIsVisible({ draw }, !!target(e).getAttribute("vis-layer"));
+      addToUndoStack();
+    });
+    force(trashLayerBtn).addEventListener("click", (e) => {
+      trashLayer(target(e).getAttribute("trash-layer"));
+      addToUndoStack();
+    });
+    setLayerIsVisible(index, true);
+  });
+  setLayer(_.setLayer$currentLayer);
+};
+
+export const getTile = (key, allLayers = false) => {
+  const layers = _.mul$maps[_.mul$ACTIVE_MAP].layers;
+  _.getTile$editedEntity = any(undefined); // FIXME: type
+  const clicked = allLayers
+    ? [...layers].reverse().find((layer, index) => {
+        if (layer.animatedTiles && key in layer.animatedTiles) {
+          setLayer(layers.length - index - 1);
+          _.getTile$editedEntity = layer.animatedTiles[key];
+        }
+        if (key in layer.tiles) {
+          setLayer(layers.length - index - 1);
+          return layer.tiles[key];
+        }
+      })?.tiles[key] //TODO this doesnt work on animatedTiles
+    : layers[_.setLayer$currentLayer].tiles[key];
+
+  if (clicked && !_.getTile$editedEntity) {
+    _.mul$selection = [clicked];
+
+    // console.log("clicked", clicked, "entity data",editedEntity)
+    force(tagInput(document.getElementById("toggleFlipX"))).checked =
+      !!clicked?.isFlippedX;
+    // TODO switch to different tileset if its from a different one
+    // if(clicked.tilesetIdx !== tilesetDataSel.value) {
+    //     tilesetDataSel.value = clicked.tilesetIdx;
+    //     reloadTilesets();
+    //     updateTilesetGridContainer();
+    // }
+    selectMode("");
+    updateSelection();
+    return true;
+  } else if (_.getTile$editedEntity) {
+    // console.log("Animated tile found", editedEntity)
+    _.mul$selection = _.getTile$editedEntity.tiles;
+    force(tagInput(document.getElementById("toggleFlipX"))).checked =
+      _.getTile$editedEntity.isFlippedX;
+    setLayer(_.getTile$editedEntity.layer);
+    force(_.init$tileFrameSel).value = _.getTile$editedEntity.name;
+    updateSelection();
+    selectMode("frames");
+    return true;
+  } else {
+    return false;
+  }
+};
+
+export const setActiveMap = (id) => {
+  _.mul$ACTIVE_MAP = id;
+  force(tagInput(document.getElementById("gridColorSel"))).value =
+    _.mul$maps[_.mul$ACTIVE_MAP].gridColor || "#00FFFF";
+  draw();
+  updateMapSize({
+    mapWidth: _.mul$maps[_.mul$ACTIVE_MAP].mapWidth,
+    mapHeight: _.mul$maps[_.mul$ACTIVE_MAP].mapHeight,
+  });
+  updateLayers();
+};
+
+// Note: only call this when tileset images have changed
+export const reloadTilesets = () => {
+  const getEmptyTileSet = ({
+    src,
+    name = "tileset",
+    gridWidth,
+    gridHeight,
+    tileData = {},
+    symbolStartIdx,
+    tileSize = _.mul$SIZE_OF_CROP,
+    tags = {},
+    frames = {},
+    width,
+    height,
+    description = "n/a",
+  }) => {
+    return {
+      src,
+      name,
+      gridWidth,
+      gridHeight,
+      tileCount: gridWidth * gridHeight,
+      tileData,
+      symbolStartIdx,
+      tileSize,
+      tags,
+      frames,
+      description,
+      width,
+      height,
+    };
+  };
+
+  _.reloadTilesets$TILESET_ELEMENTS = [];
+  force(_.init$tilesetDataSel).innerHTML = "";
+  // Use to prevent old data from erasure
+  const oldTilesets = { ..._.mul$tileSets };
+  _.mul$tileSets = {};
+  // let symbolStartIdx = 0;
+  // Generate tileset data for each of the loaded images
+  _.mul$IMAGES.forEach((tsImage, idx) => {
+    const newOpt = document.createElement("option");
+    newOpt.innerText = tsImage.name || `tileset ${idx}`;
+    newOpt.value = `${idx}`;
+    force(_.init$tilesetDataSel).appendChild(newOpt);
+    const tilesetImgElement = document.createElement("img");
+    tilesetImgElement.src = tsImage.src;
+    tilesetImgElement.crossOrigin = "Anonymous";
+    _.reloadTilesets$TILESET_ELEMENTS.push(tilesetImgElement);
+  });
+
+  Promise.all(
+    Array.from(_.reloadTilesets$TILESET_ELEMENTS)
+      .filter((img) => !img.complete)
+      .map(
+        (img) =>
+          new Promise((resolve) => {
+            img.onload = img.onerror = resolve;
+          })
+      )
+  ).then(() => {
+    // console.log("TILESET ELEMENTS", TILESET_ELEMENTS)
+    _.reloadTilesets$TILESET_ELEMENTS.forEach((tsImage, idx) => {
+      const tileSize = tsImage.tileSize || _.mul$SIZE_OF_CROP;
+      _.mul$tileSets[idx] = getEmptyTileSet({
+        tags: oldTilesets[idx]?.tags,
+        frames: oldTilesets[idx]?.frames,
+        tileSize,
+        // animations: oldTilesets[idx]?.animations,
+        src: tsImage.src,
+        name: `tileset ${idx}`,
+        width: tsImage.width,
+        height: tsImage.height,
+        // FIXME: temp value
+        gridWidth: tileSize,
+        gridHeight: tileSize,
+        symbolStartIdx: "",
+      });
+    });
+    // console.log("POPULATED", tileSets)
+    reevaluateTilesetsData();
+    force(_.init$tilesetImage).src = _.reloadTilesets$TILESET_ELEMENTS[0].src;
+    force(_.init$tilesetImage).crossOrigin = "Anonymous";
+    updateSelection(false);
+    updateTilesetGridContainer();
+  });
+  // finally current tileset loaded
+  force(_.init$tilesetImage).addEventListener("load", () => {
+    draw();
+    updateLayers();
+    if (_.mul$selection.length === 0) _.mul$selection = [getTileData(0, 0)];
+    updateSelection(false);
+    updateTilesetDataList();
+    updateTilesetDataList(true);
+    updateTilesetGridContainer();
+    const tilesetImage = force(_.init$tilesetImage);
+    force(
+      document.getElementById("tilesetSrcLabel")
+    ).innerHTML = `src: <a href="${tilesetImage.src}">${tilesetImage.src}</a>`;
+    force(document.getElementById("tilesetSrcLabel")).title = tilesetImage.src;
+    const tilesetExtraInfo = _.mul$IMAGES.find(
+      (ts) => ts.src === tilesetImage.src
+    );
+
+    // console.log("CHANGED TILESET", tilesetExtraInfo, IMAGES)
+
+    if (tilesetExtraInfo) {
+      if (tilesetExtraInfo.link) {
+        force(
+          document.getElementById("tilesetHomeLink")
+        ).innerHTML = `link: <a href="${tilesetExtraInfo.link}">${tilesetExtraInfo.link}</a> `;
+        force(document.getElementById("tilesetHomeLink")).title =
+          tilesetExtraInfo.link;
+      } else {
+        force(document.getElementById("tilesetHomeLink")).innerHTML = "";
+      }
+      if (tilesetExtraInfo.description) {
+        force(document.getElementById("tilesetDescriptionLabel")).innerText =
+          tilesetExtraInfo.description;
+        force(document.getElementById("tilesetDescriptionLabel")).title =
+          tilesetExtraInfo.description;
+      } else {
+        force(document.getElementById("tilesetDescriptionLabel")).innerText =
+          "";
+      }
+      if (tilesetExtraInfo.tileSize) {
+        setCropSize(tilesetExtraInfo.tileSize);
+      }
+    }
+    setCropSize(_.mul$tileSets[force(_.init$tilesetDataSel).value].tileSize);
+    updateZoom();
+    force(
+      tag(document.querySelector('.canvas_resizer[resizerdir="x"]'))
+      // ).style = `left:${_.mul$WIDTH}px;`;
+    ).style.left = `${_.mul$WIDTH}px;`;
+
+    if (_.mul$undoStepPosition === -1) addToUndoStack(); //initial undo stack entry
+  });
+};
+
+export const updateMaps = () => {
+  const mapsDataSel = force(_.init$mapsDataSel);
+  mapsDataSel.innerHTML = "";
+  let lastMap = _.mul$ACTIVE_MAP;
+  Object.keys(_.mul$maps).forEach((key, idx) => {
+    const newOpt = document.createElement("option");
+    newOpt.innerText = _.mul$maps[key].name; //`map ${idx}`;
+    newOpt.value = key;
+    mapsDataSel.appendChild(newOpt);
+    if (idx === Object.keys(_.mul$maps).length - 1) lastMap = key;
+  });
+  mapsDataSel.value = lastMap;
+  setActiveMap(lastMap);
+  force(tagInput(document.getElementById("removeMapBtn"))).disabled =
+    Object.keys(_.mul$maps).length === 1;
+};
+
+export const restoreFromUndoStackData = () => {
+  _.mul$maps = decoupleReferenceFromObj(
+    _.clearUndoStack$undoStack[_.mul$undoStepPosition].maps
+  );
+  const undoTileSets = decoupleReferenceFromObj(
+    _.clearUndoStack$undoStack[_.mul$undoStepPosition].tileSets
+  );
+  const undoIMAGES = decoupleReferenceFromObj(
+    _.clearUndoStack$undoStack[_.mul$undoStepPosition].IMAGES
+  );
+  if (JSON.stringify(_.mul$IMAGES) !== JSON.stringify(undoIMAGES)) {
+    // images needs to happen before tilesets
+    _.mul$IMAGES = undoIMAGES;
+    reloadTilesets();
+  }
+  if (JSON.stringify(undoTileSets) !== JSON.stringify(_.mul$tileSets)) {
+    // done to prevent the below, which is expensive
+    _.mul$tileSets = undoTileSets;
+    updateTilesetGridContainer();
+  }
+  _.mul$tileSets = undoTileSets;
+  updateTilesetDataList();
+
+  const undoLayer = decoupleReferenceFromObj(
+    _.clearUndoStack$undoStack[_.mul$undoStepPosition].currentLayer
+  );
+  const undoActiveMap = decoupleReferenceFromObj(
+    _.clearUndoStack$undoStack[_.mul$undoStepPosition].ACTIVE_MAP
+  );
+  if (undoActiveMap !== _.mul$ACTIVE_MAP) {
+    setActiveMap(undoActiveMap);
+    updateMaps();
+  }
+  // needs to happen after active map is set and maps are updated
+  updateLayers();
+  setLayer(undoLayer);
   draw();
 };
