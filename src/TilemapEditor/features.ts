@@ -1,16 +1,7 @@
 import { RANDOM_LETTERS, TOOLS, ZOOM_LEVELS } from "../constants/enums.js";
 import { activeLayerLabelHTML, layersElementHTML } from "../constants/html.js";
 import { target } from "../helper.js";
-import {
-  AllAppState,
-  Frame,
-  Layer,
-  Tile,
-  TileMap,
-  TileSet,
-  XY,
-  _,
-} from "./store.js";
+import { AllAppState, Frame, Tile, TileMap, TileSet, XY, _ } from "./store.js";
 import { decoupleReferenceFromObj, drawGrid, getEmptyLayer } from "./utils.js";
 
 export const getEmptyMap = (

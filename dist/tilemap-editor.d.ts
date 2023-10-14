@@ -219,22 +219,17 @@ declare module "src/helper" {
         result: string;
     };
 }
-declare module "src/constants/tileSetImages" {
-    import { ImageJSON } from "src/TilemapEditor/store";
-    const _default_2: ImageJSON[];
-    export default _default_2;
-}
-declare module "src/kaboomJsExport" {
-    import { FlattenedData, TileSet } from "src/TilemapEditor/store";
-    const _default_3: ({ flattenedData, tileSets, }: {
-        flattenedData: FlattenedData;
-        tileSets: Record<string, TileSet>;
-    }) => string;
-    export default _default_3;
-}
-declare module "src/uploadImageToImgur" {
-    const _default_4: (blob: Blob) => Promise<any>;
-    export default _default_4;
+declare module "src/constants/enums" {
+    export const TOOLS: {
+        BRUSH: number;
+        ERASE: number;
+        PAN: number;
+        PICK: number;
+        RAND: number;
+        FILL: number;
+    };
+    export const RANDOM_LETTERS: string[];
+    export const ZOOM_LEVELS: number[];
 }
 declare module "src/constants/html" {
     import { Layer } from "src/TilemapEditor/store";
@@ -257,22 +252,10 @@ declare module "src/TilemapEditor/utils" {
     export const decoupleReferenceFromObj: (obj: unknown) => any;
     export const getEmptyLayer: (name?: string) => Layer;
 }
-declare module "src/constants/enums" {
-    export const TOOLS: {
-        BRUSH: number;
-        ERASE: number;
-        PAN: number;
-        PICK: number;
-        RAND: number;
-        FILL: number;
-    };
-    export const RANDOM_LETTERS: string[];
-    export const ZOOM_LEVELS: number[];
-}
 declare module "src/TilemapEditor/features" {
-    import { AllAppState, Frame, Layer, Tile, TileMap, XY } from "src/TilemapEditor/store";
+    import { AllAppState, Frame, Tile, TileMap, XY } from "src/TilemapEditor/store";
     export const getEmptyMap: (name?: string, mapWidth?: number, mapHeight?: number, tileSize?: number, gridColor?: string) => {
-        layers: Layer[];
+        layers: import("src/TilemapEditor/store").Layer[];
         name: string;
         mapWidth: number;
         mapHeight: number;
@@ -339,8 +322,8 @@ declare module "src/TilemapEditor/features" {
     export const restoreFromUndoStackData: () => void;
 }
 declare module "src/TilemapEditor/init/index" {
-    import { ApiTileMapExporters, AppState, FlattenedDataItem, ImageJSON, TileMapData, ApiTileMapImporters, ApiTileSetLoaders } from "src/TilemapEditor/store";
-    const _default_5: (exports: Function) => (attachToId: string, { tileMapData, tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate, onMouseUp, appState, }: {
+    import { ApiTileMapExporters, ApiTileMapImporters, ApiTileSetLoaders, AppState, FlattenedDataItem, ImageJSON, TileMapData } from "src/TilemapEditor/store";
+    const _default_2: (exports: Function) => (attachToId: string, { tileMapData, tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate, onMouseUp, appState, }: {
         tileMapData: TileMapData;
         tileSize: number;
         mapWidth: number;
@@ -357,7 +340,7 @@ declare module "src/TilemapEditor/init/index" {
         onMouseUp?: (() => void) | undefined;
         appState: AppState;
     }) => void;
-    export default _default_5;
+    export default _default_2;
 }
 declare module "src/TilemapEditor/index" {
     export default class TilemapEditor {
@@ -385,6 +368,23 @@ declare module "src/TilemapEditor/index" {
         static onMouseUp: (getAppState: unknown, apiTileMapExporters: unknown) => void;
         static getTilesets: () => Record<string, import("src/TilemapEditor/store").TileSet>;
     }
+}
+declare module "src/constants/tileSetImages" {
+    import { ImageJSON } from "src/TilemapEditor/store";
+    const _default_3: ImageJSON[];
+    export default _default_3;
+}
+declare module "src/kaboomJsExport" {
+    import { FlattenedData, TileSet } from "src/TilemapEditor/store";
+    const _default_4: ({ flattenedData, tileSets, }: {
+        flattenedData: FlattenedData;
+        tileSets: Record<string, TileSet>;
+    }) => string;
+    export default _default_4;
+}
+declare module "src/uploadImageToImgur" {
+    const _default_5: (blob: Blob) => Promise<any>;
+    export default _default_5;
 }
 declare module "src/index" { }
 declare module "src/constants/ioJsonData" {

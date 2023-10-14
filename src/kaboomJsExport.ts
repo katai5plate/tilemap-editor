@@ -1,9 +1,4 @@
-import {
-  FlattenedData,
-  FlattenedDataItem,
-  Tile,
-  TileSet,
-} from "./TilemapEditor/store";
+import { FlattenedData, Tile, TileSet } from "./TilemapEditor/store";
 
 // kaboomJs example exporter
 export default ({

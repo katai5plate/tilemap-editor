@@ -128,122 +128,22 @@ define("src/helper", ["require", "exports"], function (require, exports) {
     const target = (e) => e.target;
     exports.target = target;
 });
-define("src/constants/tileSetImages", ["require", "exports"], function (require, exports) {
+define("src/constants/enums", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = [
-        {
-            src: "https://i.imgur.com/ztwPZOI.png",
-            name: "demo tileset",
-            tileSize: 32,
-            link: "https://google.com",
-            description: `Demo tileset with a very very very very long description that can't barely fit there.
-                Still the author decided he has lots to say about the thing and even include a link`,
-        },
-        {
-            src: "./assets/free.png",
-        },
-    ];
-});
-define("src/kaboomJsExport", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    // kaboomJs example exporter
-    exports.default = ({ flattenedData, 
-    // maps,
-    // activeMap,
-    // downloadAsTextFile,
-    tileSets, }) => {
-        const getTileData = (tileSet, tileSetIdx) => Array.from({ length: tileSet.tileCount }, (x, i) => i)
-            .map((tile) => {
-            const x = tile % tileSet.gridWidth;
-            const y = Math.floor(tile / tileSet.gridWidth);
-            const tileKey = `${x}-${y}`;
-            const tags = Object.keys(tileSet.tags).filter((tagKey) => !!tileSet.tags[tagKey]?.tiles[tileKey]);
-            return `"${tileSet.tileData[tileKey]?.tileSymbol}": [
-          sprite("tileset-${tileSetIdx}", { frame: ${tile}, }),
-          ${tags?.join(",") || ""}
-        ],`;
-        })
-            .join("\n");
-        const getAsciiMap = (flattenedDataLayer) => `\n${flattenedDataLayer
-            .map((row, rowIndex) => "'" + row.map((tile) => tile.tileSymbol).join(""))
-            .join("',\n") + "'"}`;
-        console.log("TILESETS", tileSets, flattenedData);
-        const kaboomBoiler = `
-      kaboom({
-        global: true,
-        fullscreen: true,
-        scale: 1,
-        debug: true,
-        clearColor: [0, 0, 0, 1],
-      });
-
-      // Load assets
-      ${Object.values(tileSets)
-            .map((tileSet, tileSetIdx) => `
-            loadSprite("tileset-${tileSetIdx}", "${tileSet.src}", {
-            sliceX: ${tileSet.gridWidth},
-            sliceY: ${tileSet.gridHeight},
-        });
-      `)
-            .join("\n")}
-
-
-      scene("main", () => {
-      // tileset
-        ${Object.values(tileSets)
-            .map((tileSet, tileSetIdx) => `
-            const tileset_${tileSetIdx}_data = {
-            width: ${tileSet.tileSize},
-            height: ${tileSet.tileSize},
-            pos: vec2(0, 0),
-             ${getTileData(tileSet, tileSetIdx)}
-             };
-        `)
-            .join("\n")}
-      // maps
-      ${flattenedData
-            .map(
-        //@ts-expect-error FIXME: type
-        (map, index) => `
-        const map_${index} = [${getAsciiMap(map.flattenedData[map.flattenedData.length - 1])}];
-      `)
-            .join("\n")}
-
-      addLevel(map_0, tileset_0_data);
-      })
-
-      start("main");
-      `;
-        console.log(kaboomBoiler);
-        // return the transformed data in the end
-        return kaboomBoiler;
+    exports.ZOOM_LEVELS = exports.RANDOM_LETTERS = exports.TOOLS = void 0;
+    exports.TOOLS = {
+        BRUSH: 0,
+        ERASE: 1,
+        PAN: 2,
+        PICK: 3,
+        RAND: 4,
+        FILL: 5,
     };
-});
-define("src/uploadImageToImgur", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    // upload to imgur, then return the src
-    exports.default = (blob) => {
-        const formData = new FormData();
-        formData.append("type", "file");
-        formData.append("image", blob);
-        return fetch("https://api.imgur.com/3/upload.json", {
-            method: "POST",
-            headers: {
-                Accept: "application/json",
-                Authorization: "Client-ID 1bddacd2afe5039", // imgur specific
-            },
-            body: formData,
-        })
-            .then((response) => {
-            if (response.status === 200 || response.status === 0)
-                return Promise.resolve(response);
-            return Promise.reject(new Error("Error loading image"));
-        })
-            .then((response) => response.json());
-    };
+    exports.RANDOM_LETTERS = new Array(10680)
+        .fill(1)
+        .map((_, i) => String.fromCharCode(165 + i));
+    exports.ZOOM_LEVELS = [0.25, 0.5, 1, 2, 3, 4];
 });
 define("src/constants/html", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -525,23 +425,6 @@ define("src/TilemapEditor/utils", ["require", "exports"], function (require, exp
         opacity: 1,
     });
     exports.getEmptyLayer = getEmptyLayer;
-});
-define("src/constants/enums", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ZOOM_LEVELS = exports.RANDOM_LETTERS = exports.TOOLS = void 0;
-    exports.TOOLS = {
-        BRUSH: 0,
-        ERASE: 1,
-        PAN: 2,
-        PICK: 3,
-        RAND: 4,
-        FILL: 5,
-    };
-    exports.RANDOM_LETTERS = new Array(10680)
-        .fill(1)
-        .map((_, i) => String.fromCharCode(165 + i));
-    exports.ZOOM_LEVELS = [0.25, 0.5, 1, 2, 3, 4];
 });
 define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums", "src/constants/html", "src/helper", "src/TilemapEditor/store", "src/TilemapEditor/utils"], function (require, exports, enums_js_1, html_js_1, helper_js_1, store_js_1, utils_js_1) {
     "use strict";
@@ -1486,7 +1369,7 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     };
     exports.restoreFromUndoStackData = restoreFromUndoStackData;
 });
-define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/html", "src/TilemapEditor/utils", "src/TilemapEditor/store", "src/TilemapEditor/features", "src/constants/enums", "src/helper"], function (require, exports, html_js_2, utils_js_2, store_js_2, features_js_1, enums_js_2, helper_js_2) {
+define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/enums", "src/constants/html", "src/helper", "src/TilemapEditor/features", "src/TilemapEditor/store", "src/TilemapEditor/utils"], function (require, exports, enums_js_2, html_js_2, helper_js_2, features_js_1, store_js_2, utils_js_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = (exports) => (attachToId, { tileMapData, // the main data
@@ -2475,7 +2358,7 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         requestAnimationFrame(animateTiles);
     };
 });
-define("src/TilemapEditor/index", ["require", "exports", "src/TilemapEditor/init/index", "src/TilemapEditor/features", "src/TilemapEditor/store", "src/TilemapEditor/utils"], function (require, exports, index_js_1, features_js_2, store_js_3, utils_js_3) {
+define("src/TilemapEditor/index", ["require", "exports", "src/TilemapEditor/features", "src/TilemapEditor/init/index", "src/TilemapEditor/store", "src/TilemapEditor/utils"], function (require, exports, features_js_2, index_js_1, store_js_3, utils_js_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     Object.keys(store_js_3._.state$el).forEach((key) => {
@@ -2492,7 +2375,124 @@ define("src/TilemapEditor/index", ["require", "exports", "src/TilemapEditor/init
     }
     exports.default = TilemapEditor;
 });
-define("src/index", ["require", "exports", "src/constants/tileSetImages", "src/getImgurGallery", "src/getMapFromGist", "src/kaboomJsExport", "src/uploadImageToImgur", "src/TilemapEditor/index"], function (require, exports, tileSetImages_js_1, getImgurGallery_js_1, getMapFromGist_js_1, kaboomJsExport_js_1, uploadImageToImgur_js_1, index_js_2) {
+define("src/constants/tileSetImages", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.default = [
+        {
+            src: "https://i.imgur.com/ztwPZOI.png",
+            name: "demo tileset",
+            tileSize: 32,
+            link: "https://google.com",
+            description: `Demo tileset with a very very very very long description that can't barely fit there.
+                Still the author decided he has lots to say about the thing and even include a link`,
+        },
+        {
+            src: "./assets/free.png",
+        },
+    ];
+});
+define("src/kaboomJsExport", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    // kaboomJs example exporter
+    exports.default = ({ flattenedData, 
+    // maps,
+    // activeMap,
+    // downloadAsTextFile,
+    tileSets, }) => {
+        const getTileData = (tileSet, tileSetIdx) => Array.from({ length: tileSet.tileCount }, (x, i) => i)
+            .map((tile) => {
+            const x = tile % tileSet.gridWidth;
+            const y = Math.floor(tile / tileSet.gridWidth);
+            const tileKey = `${x}-${y}`;
+            const tags = Object.keys(tileSet.tags).filter((tagKey) => !!tileSet.tags[tagKey]?.tiles[tileKey]);
+            return `"${tileSet.tileData[tileKey]?.tileSymbol}": [
+          sprite("tileset-${tileSetIdx}", { frame: ${tile}, }),
+          ${tags?.join(",") || ""}
+        ],`;
+        })
+            .join("\n");
+        const getAsciiMap = (flattenedDataLayer) => `\n${flattenedDataLayer
+            .map((row, rowIndex) => "'" + row.map((tile) => tile.tileSymbol).join(""))
+            .join("',\n") + "'"}`;
+        console.log("TILESETS", tileSets, flattenedData);
+        const kaboomBoiler = `
+      kaboom({
+        global: true,
+        fullscreen: true,
+        scale: 1,
+        debug: true,
+        clearColor: [0, 0, 0, 1],
+      });
+
+      // Load assets
+      ${Object.values(tileSets)
+            .map((tileSet, tileSetIdx) => `
+            loadSprite("tileset-${tileSetIdx}", "${tileSet.src}", {
+            sliceX: ${tileSet.gridWidth},
+            sliceY: ${tileSet.gridHeight},
+        });
+      `)
+            .join("\n")}
+
+
+      scene("main", () => {
+      // tileset
+        ${Object.values(tileSets)
+            .map((tileSet, tileSetIdx) => `
+            const tileset_${tileSetIdx}_data = {
+            width: ${tileSet.tileSize},
+            height: ${tileSet.tileSize},
+            pos: vec2(0, 0),
+             ${getTileData(tileSet, tileSetIdx)}
+             };
+        `)
+            .join("\n")}
+      // maps
+      ${flattenedData
+            .map(
+        //@ts-expect-error FIXME: type
+        (map, index) => `
+        const map_${index} = [${getAsciiMap(map.flattenedData[map.flattenedData.length - 1])}];
+      `)
+            .join("\n")}
+
+      addLevel(map_0, tileset_0_data);
+      })
+
+      start("main");
+      `;
+        console.log(kaboomBoiler);
+        // return the transformed data in the end
+        return kaboomBoiler;
+    };
+});
+define("src/uploadImageToImgur", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    // upload to imgur, then return the src
+    exports.default = (blob) => {
+        const formData = new FormData();
+        formData.append("type", "file");
+        formData.append("image", blob);
+        return fetch("https://api.imgur.com/3/upload.json", {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                Authorization: "Client-ID 1bddacd2afe5039", // imgur specific
+            },
+            body: formData,
+        })
+            .then((response) => {
+            if (response.status === 200 || response.status === 0)
+                return Promise.resolve(response);
+            return Promise.reject(new Error("Error loading image"));
+        })
+            .then((response) => response.json());
+    };
+});
+define("src/index", ["require", "exports", "src/TilemapEditor/index", "src/constants/tileSetImages", "src/getImgurGallery", "src/getMapFromGist", "src/kaboomJsExport", "src/uploadImageToImgur"], function (require, exports, index_js_2, tileSetImages_js_1, getImgurGallery_js_1, getMapFromGist_js_1, kaboomJsExport_js_1, uploadImageToImgur_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     // import ioJsonData from "./constants/ioJsonData.js";

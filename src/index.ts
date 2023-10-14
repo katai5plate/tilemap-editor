@@ -1,8 +1,3 @@
-import tileSetImages from "./constants/tileSetImages.js";
-import getImgurGallery from "./getImgurGallery.js";
-import getMapFromGist from "./getMapFromGist.js";
-import kaboomJsExport from "./kaboomJsExport.js";
-import uploadImageToImgur from "./uploadImageToImgur.js";
 import TilemapEditor from "./TilemapEditor/index.js";
 import {
   DeferredPrompt,
@@ -10,6 +5,11 @@ import {
   TileMapData,
   TileSet,
 } from "./TilemapEditor/store.js";
+import tileSetImages from "./constants/tileSetImages.js";
+import getImgurGallery from "./getImgurGallery.js";
+import getMapFromGist from "./getMapFromGist.js";
+import kaboomJsExport from "./kaboomJsExport.js";
+import uploadImageToImgur from "./uploadImageToImgur.js";
 // import ioJsonData from "./constants/ioJsonData.js";
 
 let _tileSetImages = tileSetImages;
