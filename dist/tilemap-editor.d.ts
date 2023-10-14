@@ -1,4 +1,6 @@
 declare module "src/TilemapEditor/store" {
+    export type FlattenedDataItem = any;
+    export type FlattenedData = any;
     export interface AppState {
         undoStack: Stack[];
         undoStepPosition: number;
@@ -9,7 +11,7 @@ declare module "src/TilemapEditor/store" {
         SHOW_GRID: boolean;
         selection: Tile[];
     }
-    interface Stack {
+    export interface Stack {
         maps: Record<string, TileMap>;
         tileSets: Record<string, TileSet>;
         currentLayer: AppState["currentLayer"];
@@ -41,24 +43,26 @@ declare module "src/TilemapEditor/store" {
     }
     export interface Frame {
         frameCount: number;
-        width: number;
-        height: number;
-        start: Tile;
-        tiles: Tile[];
-        name: string;
+        width?: number;
+        height?: number;
+        start?: Tile;
+        tiles?: Tile[];
+        name?: string;
         layer?: number;
-        isFlippedX: boolean;
-        xPos: number;
-        yPos: number;
+        isFlippedX?: boolean;
+        xPos?: number;
+        yPos?: number;
         animations?: Record<string, {
             start: number;
             end: number;
+            name?: string;
             loop: boolean;
             speed: number;
         }>;
     }
-    interface Tag {
+    export interface Tag {
         name: string;
+        code?: string;
         tiles: Record<string, string | {
             mark: string;
         }>;
@@ -100,6 +104,39 @@ declare module "src/TilemapEditor/store" {
         link?: string;
         description?: string;
     }
+    export interface ApiTileMapExporters {
+        exportAsImage?: {
+            name: string;
+            transformer: () => void;
+        };
+        saveData?: {
+            name: string;
+            transformer: () => void;
+        };
+        analizeTilemap?: {
+            name: string;
+            transformer: () => void;
+        };
+        exportTilesFromMap?: {
+            name: string;
+            transformer: () => void;
+        };
+    }
+    export interface ApiTileMapImporters {
+        openData?: {
+            name: string;
+            onSelectFiles: (setData: (json: unknown) => void, files: File[]) => void;
+            acceptFile: string;
+        };
+    }
+    export type ApiTileSetLoaders = {
+        base64?: {
+            name: string;
+            onSelectImage: (setSrc: (base64: unknown) => void, file: unknown, base64: unknown) => void;
+        };
+        onSelectImage?: (replaceSelectedTileSet: unknown, file: unknown, base64Src: unknown) => void;
+        prompt?: (replaceSelectedTileSet: unknown) => void;
+    };
     export interface Refs {
         tileFrameCount?: () => HTMLInputElement;
         animStart?: () => HTMLInputElement;
@@ -146,41 +183,10 @@ declare module "src/TilemapEditor/store" {
         mul$isMouseDown: boolean;
         mul$maps: Stack["maps"];
         mul$tileSets: Stack["tileSets"];
-        init_state$apiTileSetLoaders: {
-            base64?: {
-                name: string;
-                onSelectImage: (setSrc: (base64: unknown) => void, file: unknown, base64: unknown) => void;
-            };
-        };
-        init_state$selectedTileSetLoader: {
-            onSelectImage: (replaceSelectedTileSet: unknown, file: unknown, base64Src: unknown) => void;
-            prompt: (replaceSelectedTileSet: unknown) => void;
-        };
-        init_state$apiTileMapExporters: {
-            exportAsImage?: {
-                name: string;
-                transformer: () => void;
-            };
-            saveData?: {
-                name: string;
-                transformer: () => void;
-            };
-            analizeTilemap?: {
-                name: string;
-                transformer: () => void;
-            };
-            exportTilesFromMap?: {
-                name: string;
-                transformer: () => void;
-            };
-        };
-        init_state$apiTileMapImporters: {
-            openData?: {
-                name: string;
-                onSelectFiles: (setData: (json: unknown) => void, files: unknown) => void;
-                acceptFile: string;
-            };
-        };
+        init_state$apiTileSetLoaders: ApiTileSetLoaders;
+        init_state$selectedTileSetLoader: ApiTileSetLoaders;
+        init_state$apiTileMapExporters: ApiTileMapExporters;
+        init_state$apiTileMapImporters: ApiTileMapImporters;
         init$apiOnUpdateCallback: (...args: unknown[]) => void;
         init$apiOnMouseUp: (getAppState: unknown, apiTileMapExporters: unknown) => void;
         getTile$editedEntity: Frame | undefined;
@@ -219,11 +225,9 @@ declare module "src/constants/tileSetImages" {
     export default _default_2;
 }
 declare module "src/kaboomJsExport" {
-    import { TileSet } from "src/TilemapEditor/store";
+    import { FlattenedData, TileSet } from "src/TilemapEditor/store";
     const _default_3: ({ flattenedData, tileSets, }: {
-        flattenedData: {
-            flattenedData: [];
-        }[];
+        flattenedData: FlattenedData;
         tileSets: Record<string, TileSet>;
     }) => string;
     export default _default_3;
@@ -319,6 +323,7 @@ declare module "src/TilemapEditor/features" {
     export const getCurrentAnimation: (getAnim?: string) => {
         start: number;
         end: number;
+        name?: string | undefined;
         loop: boolean;
         speed: number;
     } | undefined;
@@ -334,18 +339,20 @@ declare module "src/TilemapEditor/features" {
     export const restoreFromUndoStackData: () => void;
 }
 declare module "src/TilemapEditor/init/index" {
-    import { AppState, ImageJSON, TileMapData } from "src/TilemapEditor/store";
-    const _default_5: (exports: Function) => (attachToId: number, { tileMapData, tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate, onMouseUp, appState, }: {
+    import { ApiTileMapExporters, AppState, FlattenedDataItem, ImageJSON, TileMapData, ApiTileMapImporters, ApiTileSetLoaders } from "src/TilemapEditor/store";
+    const _default_5: (exports: Function) => (attachToId: string, { tileMapData, tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate, onMouseUp, appState, }: {
         tileMapData: TileMapData;
         tileSize: number;
         mapWidth: number;
         mapHeight: number;
         tileSetImages: ImageJSON[];
         applyButtonText: string;
-        onApply: () => void;
-        tileSetLoaders: unknown;
-        tileMapExporters: unknown;
-        tileMapImporters: unknown;
+        onApply?: {
+            onClick: (data: FlattenedDataItem) => void;
+        } | undefined;
+        tileSetLoaders: ApiTileSetLoaders;
+        tileMapExporters: ApiTileMapExporters;
+        tileMapImporters: ApiTileMapImporters;
         onUpdate?: (() => void) | undefined;
         onMouseUp?: (() => void) | undefined;
         appState: AppState;
@@ -356,17 +363,19 @@ declare module "src/TilemapEditor/index" {
     export default class TilemapEditor {
         static toBase64: (file: File) => Promise<unknown>;
         static getLayers: () => import("src/TilemapEditor/store").Layer[];
-        static init: (attachToId: number, { tileMapData, tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate, onMouseUp, appState, }: {
+        static init: (attachToId: string, { tileMapData, tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate, onMouseUp, appState, }: {
             tileMapData: import("src/TilemapEditor/store").TileMapData;
             tileSize: number;
             mapWidth: number;
             mapHeight: number;
             tileSetImages: import("src/TilemapEditor/store").ImageJSON[];
             applyButtonText: string;
-            onApply: () => void;
-            tileSetLoaders: unknown;
-            tileMapExporters: unknown;
-            tileMapImporters: unknown;
+            onApply?: {
+                onClick: (data: any) => void;
+            } | undefined;
+            tileSetLoaders: import("src/TilemapEditor/store").ApiTileSetLoaders;
+            tileMapExporters: import("src/TilemapEditor/store").ApiTileMapExporters;
+            tileMapImporters: import("src/TilemapEditor/store").ApiTileMapImporters;
             onUpdate?: (() => void) | undefined;
             onMouseUp?: (() => void) | undefined;
             appState: import("src/TilemapEditor/store").AppState;

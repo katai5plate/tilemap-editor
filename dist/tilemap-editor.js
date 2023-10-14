@@ -204,7 +204,9 @@ define("src/kaboomJsExport", ["require", "exports"], function (require, exports)
             .join("\n")}
       // maps
       ${flattenedData
-            .map((map, index) => `
+            .map(
+        //@ts-expect-error FIXME: type
+        (map, index) => `
         const map_${index} = [${getAsciiMap(map.flattenedData[map.flattenedData.length - 1])}];
       `)
             .join("\n")}
@@ -1214,8 +1216,6 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     const updateLayers = () => {
         const setLayerIsVisible = (layer, override = false) => {
             const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${layer}`);
-            if (!setLayerVisBtn)
-                throw new Error("dom not found");
             const layerNumber = Number(layer);
             store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[layerNumber].visible =
                 override || !store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[layerNumber].visible;
@@ -1251,7 +1251,7 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
             });
             setLayerVisBtn.addEventListener("click", (e) => {
                 //@ts-expect-error FIXME: type error
-                setLayerIsVisible({ draw: exports.draw }, !!(0, helper_js_1.target)(e).getAttribute("vis-layer"));
+                setLayerIsVisible((0, helper_js_1.target)(e).getAttribute("vis-layer"));
                 (0, exports.addToUndoStack)();
             });
             trashLayerBtn.addEventListener("click", (e) => {
@@ -1698,16 +1698,19 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             (0, features_js_1.draw)();
         };
         const renameCurrentTileSymbol = () => {
-            const setTileData = (x = null, y = null, newData, key = "") => {
+            const setTileData = (x = NaN, y = NaN, newData, key = "") => {
                 const tilesetTiles = store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].tileData;
-                if (x === null && y === null) {
+                if (Number.isNaN(x) && Number.isNaN(y)) {
                     const { x: sx, y: sy } = store_js_2._.mul$selection[0];
+                    //@ts-expect-error FIXME: type error
                     tilesetTiles[`${sx}-${sy}`] = newData;
                 }
                 if (key !== "") {
+                    //@ts-expect-error FIXME: type error
                     tilesetTiles[`${x}-${y}`][key] = newData;
                 }
                 else {
+                    //@ts-expect-error FIXME: type error
                     tilesetTiles[`${x}-${y}`] = newData;
                 }
             };
@@ -1730,10 +1733,10 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                         .map(() => {
                         return Array(map.mapHeight)
                             .fill([])
-                            .map((row) => {
+                            .map((_row) => {
                             return Array(map.mapWidth)
                                 .fill([])
-                                .map((column) => ({
+                                .map((_column) => ({
                                 tile: null,
                                 tileSymbol: " ", // a space is an empty tile
                             }));
@@ -2054,7 +2057,7 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         // Tileset frames
         store_js_2._.init$tileFrameSel = document.getElementById("tileFrameSel");
         store_js_2._.init$tileFrameSel.addEventListener("change", (e) => {
-            store_js_2._.state$el.tileFrameCount().value = (0, features_js_1.getCurrentFrames)()?.frameCount || 1;
+            store_js_2._.state$el.tileFrameCount().value = `${(0, features_js_1.getCurrentFrames)()?.frameCount || 1}`;
             (0, features_js_1.updateTilesetDataList)(true);
             (0, features_js_1.updateTilesetGridContainer)();
         });
@@ -2139,10 +2142,10 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         store_js_2._.init$tileAnimSel.addEventListener("change", (e) => {
             //swap with tileAnimSel
             console.log("anim select", e, store_js_2._.init$tileAnimSel.value);
-            store_js_2._.state$el.animStart().value = (0, features_js_1.getCurrentAnimation)()?.start || 1;
-            store_js_2._.state$el.animEnd().value = (0, features_js_1.getCurrentAnimation)()?.end || 1;
+            store_js_2._.state$el.animStart().value = `${(0, features_js_1.getCurrentAnimation)()?.start || 1}`;
+            store_js_2._.state$el.animEnd().value = `${(0, features_js_1.getCurrentAnimation)()?.end || 1}`;
             store_js_2._.state$el.animLoop().checked = (0, features_js_1.getCurrentAnimation)()?.loop || false;
-            store_js_2._.state$el.animSpeed().value = (0, features_js_1.getCurrentAnimation)()?.speed || 1;
+            store_js_2._.state$el.animSpeed().value = `${(0, features_js_1.getCurrentAnimation)()?.speed || 1}`;
             (0, features_js_1.updateTilesetGridContainer)();
         });
         document.getElementById("addTileAnimBtn").addEventListener("click", () => {
@@ -2187,10 +2190,11 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             renameKeyInObjectForSelectElement(store_js_2._.init$tileAnimSel, store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value]?.frames[store_js_2._.init$tileFrameSel.value]?.animations, "animation");
         });
         store_js_2._.state$el.animLoop().addEventListener("change", () => {
-            (0, features_js_1.getCurrentAnimation)().loop = store_js_2._.state$el.animLoop().checked;
+            features_js_1.getCurrentAnimation().loop = store_js_2._.state$el.animLoop().checked;
         });
         store_js_2._.state$el.animSpeed().addEventListener("change", (e) => {
-            (0, features_js_1.getCurrentAnimation)().speed = store_js_2._.state$el.animSpeed().value;
+            features_js_1.getCurrentAnimation().speed = store_js_2._.state$el.animSpeed()
+                .value;
         });
         // Tileset SELECT callbacks
         store_js_2._.init$tilesetDataSel = document.getElementById("tilesetDataSel");
@@ -2215,6 +2219,7 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             store_js_2._.mul$IMAGES.push({ src });
             (0, features_js_1.reloadTilesets)();
         };
+        //@ts-expect-error FIXME: exports
         exports.addNewTileSet = addNewTileSet;
         // replace tileset
         document
@@ -2264,12 +2269,15 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             // apiTileSetLoaders[key].load = () => tileSetLoaders
         });
         tileSetLoadersSel.value = "base64";
+        //@ts-expect-error FIXME: type
         store_js_2._.init_state$selectedTileSetLoader =
             store_js_2._.init_state$apiTileSetLoaders[tileSetLoadersSel.value];
         tileSetLoadersSel.addEventListener("change", (e) => {
+            //@ts-expect-error FIXME: type
             store_js_2._.init_state$selectedTileSetLoader =
                 store_js_2._.init_state$apiTileSetLoaders[(0, helper_js_2.target)(e).value];
         });
+        //@ts-expect-error FIXME: exports
         exports.tilesetLoaders = store_js_2._.init_state$apiTileSetLoaders;
         const deleteTilesetWithIndex = (index, cb = null) => {
             if (confirm(`Are you sure you want to delete this image?`)) {
@@ -2280,7 +2288,9 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                     cb();
             }
         };
+        //@ts-expect-error FIXME: exports
         exports.IMAGES = store_js_2._.mul$IMAGES;
+        //@ts-expect-error FIXME: exports
         exports.deleteTilesetWithIndex = deleteTilesetWithIndex;
         document
             .getElementById("removeTilesetBtn")
@@ -2384,8 +2394,10 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             makeMenuItem(exporter.name, key, exporter.description).onclick = () => {
                 exporter.transformer(getExportData());
             };
+            //@ts-expect-error FIXME: type
             store_js_2._.init_state$apiTileMapExporters[key].getData = () => exporter.transformer(getExportData());
         });
+        //@ts-expect-error FIXME: exports
         exports.exporters = store_js_2._.init_state$apiTileMapExporters;
         Object.entries(store_js_2._.init_state$apiTileMapImporters).forEach(([key, importer]) => {
             makeMenuItem(importer.name, key, importer.description).onclick = () => {

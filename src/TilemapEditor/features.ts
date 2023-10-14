@@ -914,8 +914,7 @@ export const setLayer = (newLayer: number) => {
 
 export const updateLayers = () => {
   const setLayerIsVisible = (layer: string, override = false) => {
-    const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${layer}`);
-    if (!setLayerVisBtn) throw new Error("dom not found");
+    const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${layer}`)!;
     const layerNumber = Number(layer);
     _.mul$maps[_.mul$ACTIVE_MAP].layers[layerNumber].visible =
       override || !_.mul$maps[_.mul$ACTIVE_MAP].layers[layerNumber].visible;
@@ -956,7 +955,7 @@ export const updateLayers = () => {
     });
     setLayerVisBtn.addEventListener("click", (e) => {
       //@ts-expect-error FIXME: type error
-      setLayerIsVisible({ draw }, !!target(e).getAttribute("vis-layer"));
+      setLayerIsVisible(target(e).getAttribute("vis-layer"));
       addToUndoStack();
     });
     trashLayerBtn.addEventListener("click", (e) => {
