@@ -1,8 +1,16 @@
 import { RANDOM_LETTERS, TOOLS, ZOOM_LEVELS } from "../constants/enums.js";
 import { activeLayerLabelHTML, layersElementHTML } from "../constants/html.js";
 import { target } from "../helper.js";
-import _ from "./state.js";
-import { Tile, XY } from "./type.js";
+import {
+  AllAppState,
+  Frame,
+  Layer,
+  Tile,
+  TileMap,
+  TileSet,
+  XY,
+  _,
+} from "./store.js";
 import { decoupleReferenceFromObj, drawGrid, getEmptyLayer } from "./utils.js";
 
 export const getEmptyMap = (
@@ -27,7 +35,7 @@ export const getEmptyMap = (
 });
 
 export const getTileData = (x = NaN, y = NaN) => {
-  const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel.value].tileData;
+  const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel!.value].tileData;
   let data;
   if (Number.isNaN(x) && Number.isNaN(y)) {
     const { x: sx, y: sy } = _.mul$selection[0];
@@ -62,14 +70,14 @@ export const getAppState = () => {
     },
     //Todo tileSize and the others
     // undo stack is lost
-  };
+  } as AllAppState;
 };
 export const onUpdateState = () => {
   _.init$apiOnUpdateCallback(getAppState());
 };
 
 export const draw = (shouldDrawGrid = true) => {
-  const ctx = _.init$canvas.getContext("2d");
+  const ctx = _.init$canvas!.getContext("2d")!;
   ctx.clearRect(0, 0, _.mul$WIDTH, _.mul$HEIGHT);
   ctx.canvas.width = _.mul$WIDTH;
   ctx.canvas.height = _.mul$HEIGHT;
@@ -85,7 +93,7 @@ export const draw = (shouldDrawGrid = true) => {
 
   _.mul$maps[_.mul$ACTIVE_MAP].layers.forEach((layer) => {
     if (!layer.visible) return;
-    ctx.globalAlpha = layer.opacity;
+    ctx.globalAlpha = layer.opacity ?? NaN;
     if (_.mul$ZOOM !== 1) {
       (ctx as any).webkitImageSmoothingEnabled = false;
       (ctx as any).mozImageSmoothingEnabled = false;
@@ -146,19 +154,19 @@ export const draw = (shouldDrawGrid = true) => {
     Object.keys(layer.animatedTiles || {}).forEach((key) => {
       const [positionX, positionY] = key.split("-").map(Number);
       const { start, width, height, frameCount, isFlippedX } =
-        layer.animatedTiles[key];
-      const { x, y, tilesetIdx } = start;
+        layer.animatedTiles?.[key] ?? {};
+      const { x, y, tilesetIdx } = start ?? {};
       const tileSize =
-        _.mul$tileSets[tilesetIdx]?.tileSize || _.mul$SIZE_OF_CROP;
+        _.mul$tileSets[tilesetIdx!]?.tileSize || _.mul$SIZE_OF_CROP;
 
-      if (!(tilesetIdx in _.reloadTilesets$TILESET_ELEMENTS)) {
+      if (!(tilesetIdx! in _.reloadTilesets$TILESET_ELEMENTS)) {
         //texture not found
         ctx.fillStyle = "yellow";
         ctx.fillRect(
           positionX * _.mul$SIZE_OF_CROP * _.mul$ZOOM,
           positionY * _.mul$SIZE_OF_CROP * _.mul$ZOOM,
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * width,
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * height
+          _.mul$SIZE_OF_CROP * _.mul$ZOOM * width!,
+          _.mul$SIZE_OF_CROP * _.mul$ZOOM * height!
         );
         ctx.fillStyle = "blue";
         ctx.fillText(
@@ -169,8 +177,8 @@ export const draw = (shouldDrawGrid = true) => {
         return;
       }
       const frameIndex =
-        _.init$tileDataSel.value === "frames" || frameCount === 1
-          ? Math.round(Date.now() / 120) % frameCount
+        _.init$tileDataSel!.value === "frames" || frameCount === 1
+          ? Math.round(Date.now() / 120) % frameCount!
           : 1; //30fps
 
       if (isFlippedX) {
@@ -189,21 +197,21 @@ export const draw = (shouldDrawGrid = true) => {
           ctx.rect(
             positionXFlipped,
             positionY * _.mul$SIZE_OF_CROP * _.mul$ZOOM,
-            _.mul$SIZE_OF_CROP * _.mul$ZOOM * width,
-            _.mul$SIZE_OF_CROP * _.mul$ZOOM * height
+            _.mul$SIZE_OF_CROP * _.mul$ZOOM * width!,
+            _.mul$SIZE_OF_CROP * _.mul$ZOOM * height!
           );
           ctx.stroke();
         }
         ctx.drawImage(
-          _.reloadTilesets$TILESET_ELEMENTS[tilesetIdx],
-          x * tileSize + frameIndex * tileSize * width,
-          y * tileSize,
-          tileSize * width, // src width
-          tileSize * height, // src height
+          _.reloadTilesets$TILESET_ELEMENTS[tilesetIdx!],
+          x! * tileSize + frameIndex * tileSize * width!,
+          y! * tileSize,
+          tileSize * width!, // src width
+          tileSize * height!, // src height
           positionXFlipped,
           positionY * _.mul$SIZE_OF_CROP * _.mul$ZOOM, //target y
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * width, // target width
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * height // target height
+          _.mul$SIZE_OF_CROP * _.mul$ZOOM * width!, // target width
+          _.mul$SIZE_OF_CROP * _.mul$ZOOM * height! // target height
         );
         if (shouldDrawGrid && !shouldHideHud) {
           ctx.fillStyle = "white";
@@ -222,21 +230,21 @@ export const draw = (shouldDrawGrid = true) => {
           ctx.rect(
             positionX * _.mul$SIZE_OF_CROP * _.mul$ZOOM,
             positionY * _.mul$SIZE_OF_CROP * _.mul$ZOOM,
-            _.mul$SIZE_OF_CROP * _.mul$ZOOM * width,
-            _.mul$SIZE_OF_CROP * _.mul$ZOOM * height
+            _.mul$SIZE_OF_CROP * _.mul$ZOOM * width!,
+            _.mul$SIZE_OF_CROP * _.mul$ZOOM * height!
           );
           ctx.stroke();
         }
         ctx.drawImage(
-          _.reloadTilesets$TILESET_ELEMENTS[tilesetIdx],
-          x * tileSize + frameIndex * tileSize * width, //src x
-          y * tileSize, //src y
-          tileSize * width, // src width
-          tileSize * height, // src height
+          _.reloadTilesets$TILESET_ELEMENTS[tilesetIdx!],
+          x! * tileSize + frameIndex * tileSize * width!, //src x
+          y! * tileSize, //src y
+          tileSize * width!, // src width
+          tileSize * height!, // src height
           positionX * _.mul$SIZE_OF_CROP * _.mul$ZOOM, //target x
           positionY * _.mul$SIZE_OF_CROP * _.mul$ZOOM, //target y
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * width, // target width
-          _.mul$SIZE_OF_CROP * _.mul$ZOOM * height // target height
+          _.mul$SIZE_OF_CROP * _.mul$ZOOM * width!, // target width
+          _.mul$SIZE_OF_CROP * _.mul$ZOOM * height! // target height
         );
         if (shouldDrawGrid && !shouldHideHud) {
           ctx.fillStyle = "white";
@@ -260,17 +268,17 @@ export const draw = (shouldDrawGrid = true) => {
   onUpdateState();
 };
 
-export const getSelectedTile = (event) => {
-  const { x, y } = event.target.getBoundingClientRect();
+export const getSelectedTile = (event: MouseEvent) => {
+  const { x, y } = target(event).getBoundingClientRect();
   const tileSize =
-    _.mul$tileSets[_.init$tilesetDataSel.value].tileSize * _.mul$ZOOM;
+    _.mul$tileSets[_.init$tilesetDataSel!.value].tileSize * _.mul$ZOOM;
   const tx = Math.floor(Math.max(event.clientX - x, 0) / tileSize);
   const ty = Math.floor(Math.max(event.clientY - y, 0) / tileSize);
   // add start tile, add end tile, add all tiles inbetween
   const newSelection = [];
   if (_.init$tileSelectStart !== null) {
-    for (let ix = _.init$tileSelectStart.x; ix < tx + 1; ix++) {
-      for (let iy = _.init$tileSelectStart.y; iy < ty + 1; iy++) {
+    for (let ix = _.init$tileSelectStart.x!; ix < tx + 1; ix++) {
+      for (let iy = _.init$tileSelectStart.y!; iy < ty + 1; iy++) {
         const data = getTileData(ix, iy);
         newSelection.push({ ...data, x: ix, y: iy });
       }
@@ -282,9 +290,9 @@ export const getSelectedTile = (event) => {
   return [{ ...data, x: tx, y: ty }];
 };
 
-export const setActiveTool = (toolIdx) => {
-  const toolButtonsWrapper = document.getElementById("toolButtonsWrapper");
-  const canvas_wrapper = document.getElementById("canvas_wrapper");
+export const setActiveTool = (toolIdx: number) => {
+  const toolButtonsWrapper = document.getElementById("toolButtonsWrapper")!;
+  const canvas_wrapper = document.getElementById("canvas_wrapper")!;
 
   _.mul$ACTIVE_TOOL = toolIdx;
   const actTool = toolButtonsWrapper.querySelector(
@@ -300,8 +308,8 @@ export const setActiveTool = (toolIdx) => {
 };
 
 export const updateSelection = (autoSelectTool = true) => {
-  const tilesetDataSel = _.init$tilesetDataSel;
-  const tilesetSelection = _.init$tilesetSelection;
+  const tilesetDataSel = _.init$tilesetDataSel!;
+  const tilesetSelection = _.init$tilesetSelection!;
   if (!_.mul$tileSets[tilesetDataSel.value]) return;
   const selected = _.mul$selection[0];
   if (!selected) return;
@@ -329,13 +337,13 @@ export const updateSelection = (autoSelectTool = true) => {
 
   // show/hide param editor
 
-  if (_.init$tileDataSel.value === "frames" && _.getTile$editedEntity)
-    _.init$objectParametersEditor.classList.add("entity");
-  else _.init$objectParametersEditor.classList.remove("entity");
+  if (_.init$tileDataSel!.value === "frames" && _.getTile$editedEntity)
+    _.init$objectParametersEditor!.classList.add("entity");
+  else _.init$objectParametersEditor!.classList.remove("entity");
   onUpdateState();
 };
 
-export const setMouseIsTrue = (e) => {
+export const setMouseIsTrue = (e: MouseEvent) => {
   if (e.button === 0) {
     _.mul$isMouseDown = true;
   } else if (e.button === 1) {
@@ -344,7 +352,7 @@ export const setMouseIsTrue = (e) => {
   }
 };
 
-export const setMouseIsFalse = (e) => {
+export const setMouseIsFalse = (e: MouseEvent) => {
   if (e.button === 0) {
     _.mul$isMouseDown = false;
   } else if (e.button === 1 && _.mul$ACTIVE_TOOL === TOOLS.PAN) {
@@ -352,7 +360,7 @@ export const setMouseIsFalse = (e) => {
   }
 };
 
-export const removeTile = (key) => {
+export const removeTile = (key: string) => {
   delete _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].tiles[
     key
   ];
@@ -361,11 +369,13 @@ export const removeTile = (key) => {
     (_.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer]
       .animatedTiles || {})
   )
-    delete _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer]
-      .animatedTiles[key];
+    delete (
+      _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer]
+        .animatedTiles as any
+    )[key];
 };
 
-const addSelectedTiles = (key, tiles?) => {
+const addSelectedTiles = (key: string, tiles?: Tile[]) => {
   const [x, y] = key.split("-");
   const tilesPatch = tiles || _.mul$selection; // tiles is opt override for selection for fancy things like random patch of tiles
   const { x: startX, y: startY } = tilesPatch[0]; // add selection override
@@ -387,23 +397,24 @@ const addSelectedTiles = (key, tiles?) => {
           (tile) => tile.x === startX + ix && tile.y === startY + iy
         ),
         isFlippedX,
-      };
+      } as Tile;
     }
   }
 };
 
 export const getCurrentFrames = () =>
-  _.mul$tileSets[_.init$tilesetDataSel.value]?.frames[
-    _.init$tileFrameSel.value
+  _.mul$tileSets[_.init$tilesetDataSel!.value]?.frames[
+    _.init$tileFrameSel!.value
   ];
 
 export const getSelectedFrameCount = () => getCurrentFrames()?.frameCount || 1;
 
 export const shouldNotAddAnimatedTile = () =>
-  (_.init$tileDataSel.value !== "frames" && getSelectedFrameCount() !== 1) ||
-  Object.keys(_.mul$tileSets[_.init$tilesetDataSel.value]?.frames).length === 0;
+  (_.init$tileDataSel!.value !== "frames" && getSelectedFrameCount() !== 1) ||
+  Object.keys(_.mul$tileSets[_.init$tilesetDataSel!.value]?.frames).length ===
+    0;
 
-export const addTile = (key) => {
+export const addTile = (key: string) => {
   if (shouldNotAddAnimatedTile()) {
     addSelectedTiles(key);
   } else {
@@ -416,27 +427,28 @@ export const addTile = (key) => {
         _.setLayer$currentLayer
       ].animatedTiles = {};
     const [x, y] = key.split("-");
-    _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].animatedTiles[
-      key
-    ] = {
+    const animatedTiles =
+      _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer]
+        .animatedTiles!;
+    animatedTiles[key] = {
       ...getCurrentFrames(),
       isFlippedX: (document.getElementById("toggleFlipX") as HTMLInputElement)
         .checked,
       layer: _.setLayer$currentLayer,
       xPos: Number(x) * _.mul$SIZE_OF_CROP,
       yPos: Number(y) * _.mul$SIZE_OF_CROP,
-    };
+    } as Frame;
   }
 };
 
-export const addRandomTile = (key) => {
+export const addRandomTile = (key: string) => {
   // TODO add probability for empty
   if (shouldNotAddAnimatedTile()) {
     _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].tiles[key] =
       _.mul$selection[Math.floor(Math.random() * _.mul$selection.length)];
   } else {
     // do the same, but add random from frames instead
-    const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel.value].tileData;
+    const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel!.value].tileData;
     const { frameCount, tiles, width } = getCurrentFrames();
     const randOffset = Math.floor(Math.random() * frameCount);
     const randXOffsetTiles = tiles.map(
@@ -446,10 +458,10 @@ export const addRandomTile = (key) => {
   }
 };
 
-export const fillEmptyOrSameTiles = (key) => {
+export const fillEmptyOrSameTiles = (key: string) => {
   const pickedTile =
     _.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].tiles[key];
-  const [w, h] = [_.mul$mapTileWidth, _.mul$mapTileHeight];
+  const [w, h] = [_.mul$mapTileWidth!, _.mul$mapTileHeight!];
   Array.from({ length: w * h }, (x, i) => i).map((tile) => {
     const x = tile % w;
     const y = Math.floor(tile / w);
@@ -483,9 +495,9 @@ export const fillEmptyOrSameTiles = (key) => {
 };
 
 export const updateTilesetGridContainer = () => {
-  const viewMode = _.init$tileDataSel.value;
+  const viewMode = _.init$tileDataSel!.value;
 
-  const tilesetData = _.mul$tileSets[_.init$tilesetDataSel.value];
+  const tilesetData = _.mul$tileSets[_.init$tilesetDataSel!.value];
   if (!tilesetData) return;
 
   const { tileCount, gridWidth, tileData, tags } = tilesetData;
@@ -494,12 +506,12 @@ export const updateTilesetGridContainer = () => {
     !_.toggleSymbolsVisible$DISPLAY_SYMBOLS || shouldHideSymbols();
   const canvas = document.getElementById("tilesetCanvas") as HTMLCanvasElement;
 
-  const img = _.reloadTilesets$TILESET_ELEMENTS[_.init$tilesetDataSel.value];
+  const img = _.reloadTilesets$TILESET_ELEMENTS[+_.init$tilesetDataSel!.value];
 
   canvas.width = img.width * _.mul$ZOOM;
   canvas.height = img.height * _.mul$ZOOM;
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d")!;
   if (_.mul$ZOOM !== 1) {
     (ctx as any).webkitImageSmoothingEnabled = false;
     (ctx as any).mozImageSmoothingEnabled = false;
@@ -543,7 +555,7 @@ export const updateTilesetGridContainer = () => {
           ? tileData[tileKey]?.tileSymbol
           : viewMode === "frames"
           ? tile
-          : tags[viewMode]?.tiles[tileKey]?.mark || "-";
+          : (tags[viewMode]?.tiles[tileKey] as { mark: string })?.mark || "-";
 
       ctx.fillStyle = "white";
       ctx.font = "11px arial";
@@ -556,32 +568,40 @@ export const updateTilesetGridContainer = () => {
       const posY =
         y * _.mul$SIZE_OF_CROP * _.mul$ZOOM +
         (_.mul$SIZE_OF_CROP * _.mul$ZOOM) / 2;
-      ctx.fillText(innerTile, posX, posY);
+      ctx.fillText(`${innerTile}`, posX, posY);
     }
   });
 };
 
 export const selectMode = (mode = "") => {
-  if (mode !== "") _.init$tileDataSel.value = mode;
-  document.getElementById("tileFrameSelContainer").style.display =
-    _.init$tileDataSel.value === "frames" ? "flex" : "none";
+  if (mode !== "") _.init$tileDataSel!.value = mode;
+  document.getElementById("tileFrameSelContainer")!.style.display =
+    _.init$tileDataSel!.value === "frames" ? "flex" : "none";
   // tilesetContainer.style.top = tileDataSel.value === "frames" ? "45px" : "0";
   updateTilesetGridContainer();
 };
 
-export const downloadAsTextFile = (input, fileName = "tilemap-editor.json") => {
+export const downloadAsTextFile = (
+  input: unknown,
+  fileName = "tilemap-editor.json"
+) => {
   const dataStr =
     "data:text/json;charset=utf-8," +
     encodeURIComponent(
       typeof input === "string" ? input : JSON.stringify(input)
     );
-  const dlAnchorElem = document.getElementById("downloadAnchorElem");
+  const dlAnchorElem = document.getElementById("downloadAnchorElem")!;
   dlAnchorElem.setAttribute("href", dataStr);
   dlAnchorElem.setAttribute("download", fileName);
   dlAnchorElem.click();
 };
 
-export const getTilesAnalisis = (ctx, width, height, sizeOfTile) => {
+export const getTilesAnalisis = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  sizeOfTile: number
+) => {
   const analizedTiles = {} as Record<
     string,
     {
@@ -615,14 +635,14 @@ export const getTilesAnalisis = (ctx, width, height, sizeOfTile) => {
   return { analizedTiles, uniqueTiles };
 };
 
-export const updateMapSize = (size) => {
+export const updateMapSize = (size: Partial<TileMap>) => {
   if (size?.mapWidth && size?.mapWidth > 1) {
     _.mul$mapTileWidth = size?.mapWidth;
-    _.mul$WIDTH = _.mul$mapTileWidth * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
+    _.mul$WIDTH = _.mul$mapTileWidth! * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
     _.mul$maps[_.mul$ACTIVE_MAP].mapWidth = _.mul$mapTileWidth;
     document.querySelector<HTMLElement>(
       ".canvas_resizer[resizerdir='x']"
-    ).style.left = `${_.mul$WIDTH}px`;
+    )!.style.left = `${_.mul$WIDTH}px`;
     (
       document.querySelector(
         ".canvas_resizer[resizerdir='x'] input"
@@ -637,7 +657,7 @@ export const updateMapSize = (size) => {
     _.mul$maps[_.mul$ACTIVE_MAP].mapHeight = _.mul$mapTileHeight;
     document.querySelector<HTMLElement>(
       ".canvas_resizer[resizerdir='y']"
-    ).style.top = `${_.mul$HEIGHT}px`;
+    )!.style.top = `${_.mul$HEIGHT}px`;
     (
       document.querySelector(
         ".canvas_resizer[resizerdir='y'] input"
@@ -700,8 +720,8 @@ export const addToUndoStack = () => {
 
 export const updateZoom = () => {
   const [tilesetImage, tilesetContainer] = [
-    _.init$tilesetImage,
-    _.init$tilesetContainer,
+    _.init$tilesetImage!,
+    _.init$tilesetContainer!,
   ];
   // tilesetImage.style = `transform: scale(${_.mul$ZOOM});transform-origin: left top;image-rendering: auto;image-rendering: crisp-edges;image-rendering: pixelated;`;
   tilesetImage.setAttribute(
@@ -710,30 +730,35 @@ export const updateZoom = () => {
   );
   tilesetContainer.style.width = `${tilesetImage.width * _.mul$ZOOM}px`;
   tilesetContainer.style.height = `${tilesetImage.height * _.mul$ZOOM}px`;
-  document.getElementById("zoomLabel").innerText = `${_.mul$ZOOM}x`;
+  document.getElementById("zoomLabel")!.innerText = `${_.mul$ZOOM}x`;
   updateTilesetGridContainer();
   updateSelection(false);
   updateMapSize({
     mapWidth: _.mul$mapTileWidth,
     mapHeight: _.mul$mapTileHeight,
   });
-  _.mul$WIDTH = _.mul$mapTileWidth * _.mul$SIZE_OF_CROP * _.mul$ZOOM; // needed when setting zoom?
-  _.mul$HEIGHT = _.mul$mapTileHeight * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
+  _.mul$WIDTH = _.mul$mapTileWidth! * _.mul$SIZE_OF_CROP * _.mul$ZOOM; // needed when setting zoom?
+  _.mul$HEIGHT = _.mul$mapTileHeight! * _.mul$SIZE_OF_CROP * _.mul$ZOOM;
   _.mul$zoomIndex =
     ZOOM_LEVELS.indexOf(_.mul$ZOOM) === -1
       ? 0
       : ZOOM_LEVELS.indexOf(_.mul$ZOOM);
 };
 
-export const getCurrentAnimation = (getAnim?) =>
-  _.mul$tileSets[_.init$tilesetDataSel.value]?.frames[_.init$tileFrameSel.value]
-    ?.animations?.[getAnim || _.init$tileAnimSel.value];
+export const getCurrentAnimation = (getAnim?: string) =>
+  _.mul$tileSets[_.init$tilesetDataSel!.value]?.frames[
+    _.init$tileFrameSel!.value
+  ]?.animations?.[getAnim || _.init$tileAnimSel!.value];
 
 export const updateTilesetDataList = (populateFrames = false) => {
-  const populateWithOptions = (selectEl, options, newContent) => {
+  const populateWithOptions = (
+    selectEl: HTMLSelectElement,
+    options?: {},
+    newContent?: string
+  ) => {
     if (!options) return;
     const value = selectEl.value + "";
-    selectEl.innerHTML = newContent;
+    selectEl.innerHTML = newContent ?? "";
     Object.keys(options).forEach((opt) => {
       const newOption = document.createElement("option");
       newOption.innerText = opt;
@@ -747,11 +772,11 @@ export const updateTilesetDataList = (populateFrames = false) => {
       selectEl.value = value;
   };
 
-  const tilesetDataSel = _.init$tilesetDataSel;
+  const tilesetDataSel = _.init$tilesetDataSel!;
 
   if (!populateFrames)
     populateWithOptions(
-      _.init$tileDataSel,
+      _.init$tileDataSel!,
       _.mul$tileSets[tilesetDataSel.value]?.tags,
       `<option value="">Symbols (${
         _.mul$tileSets[tilesetDataSel.value]?.tileCount || "?"
@@ -759,52 +784,47 @@ export const updateTilesetDataList = (populateFrames = false) => {
     );
   else {
     populateWithOptions(
-      _.init$tileFrameSel,
+      _.init$tileFrameSel!,
       _.mul$tileSets[tilesetDataSel.value]?.frames,
       ""
     );
     populateWithOptions(
-      _.init$tileAnimSel,
-      _.mul$tileSets[tilesetDataSel.value]?.frames[_.init$tileFrameSel.value]
+      _.init$tileAnimSel!,
+      _.mul$tileSets[tilesetDataSel.value]?.frames[_.init$tileFrameSel!.value]
         ?.animations,
       ""
     );
   }
 
-  (document.getElementById("tileFrameCount") as HTMLInputElement).value =
-    getCurrentFrames()?.frameCount || 1;
+  (document.getElementById("tileFrameCount") as HTMLInputElement).value = `${
+    getCurrentFrames()?.frameCount || 1
+  }`;
   const currentAnim = getCurrentAnimation();
-  // FIXME: ???
-  //@ts-ignore
-  _.state$el.animStart().max = _.state$el.tileFrameCount().value;
-  //@ts-ignore
-  _.state$el.animEnd().max = _.state$el.tileFrameCount().value;
+  _.state$el.animStart!().max = _.state$el.tileFrameCount!().value;
+  _.state$el.animEnd!().max = _.state$el.tileFrameCount!().value;
   if (currentAnim) {
     console.log({ currentAnim });
-    //@ts-ignore
-    _.state$el.animStart().value = currentAnim.start || 1;
-    //@ts-ignore
-    _.state$el.animEnd().value = currentAnim.end || 1;
-    //@ts-ignore
-    _.state$el.animLoop().checked = currentAnim.loop || false;
-    //@ts-ignore
-    _.state$el.animSpeed().value = currentAnim.speed || 1;
+    _.state$el.animStart!().value = `${currentAnim.start || 1}`;
+    _.state$el.animEnd!().value = `${currentAnim.end || 1}`;
+    _.state$el.animLoop!().checked = currentAnim.loop || false;
+    _.state$el.animSpeed!().value = `${currentAnim.speed || 1}`;
   }
 };
 
 export const reevaluateTilesetsData = () => {
   let symbolStartIdx = 0;
   Object.entries(_.mul$tileSets).forEach(([key, old]) => {
-    const tileData = {};
+    const tileData: Record<string, Tile> = {};
     // console.log("OLD DATA",old)
     const tileSize = old.tileSize || _.mul$SIZE_OF_CROP;
-    const gridWidth = Math.ceil(old.width / tileSize);
-    const gridHeight = Math.ceil(old.height / tileSize);
+    const gridWidth = Math.ceil(old.width! / tileSize);
+    const gridHeight = Math.ceil(old.height! / tileSize);
     const tileCount = gridWidth * gridHeight;
 
     Array.from({ length: tileCount }, (x, i) => i).map((tile) => {
       const x = tile % gridWidth;
       const y = Math.floor(tile / gridWidth);
+      //@ts-expect-error FIXME: type error
       const oldTileData = old?.[`${x}-${y}`]?.tileData;
       const tileSymbol = RANDOM_LETTERS[Math.floor(symbolStartIdx + tile)];
       tileData[`${x}-${y}`] = {
@@ -832,16 +852,16 @@ export const reevaluateTilesetsData = () => {
   // console.log("UPDATED TSETS", tileSets)
 };
 
-export const setCropSize = (newSize) => {
-  if (newSize === _.mul$SIZE_OF_CROP && _.init$cropSize.value === newSize)
+export const setCropSize = (newSize: number) => {
+  if (newSize === _.mul$SIZE_OF_CROP && _.init$cropSize!.value === `${newSize}`)
     return;
-  _.mul$tileSets[_.init$tilesetDataSel.value].tileSize = newSize;
+  _.mul$tileSets[_.init$tilesetDataSel!.value].tileSize = newSize;
   _.mul$IMAGES.forEach((ts, idx) => {
-    if (ts.src === _.init$tilesetImage.src)
+    if (ts.src === _.init$tilesetImage!.src)
       _.mul$IMAGES[idx].tileSize = newSize;
   });
   _.mul$SIZE_OF_CROP = newSize;
-  _.init$cropSize.value = `${_.mul$SIZE_OF_CROP}`;
+  _.init$cropSize!.value = `${_.mul$SIZE_OF_CROP}`;
   (
     document.getElementById("gridCropSize") as HTMLInputElement
   ).value = `${_.mul$SIZE_OF_CROP}`;
@@ -854,7 +874,7 @@ export const setCropSize = (newSize) => {
   draw();
 };
 
-export const setLayer = (newLayer) => {
+export const setLayer = (newLayer: number) => {
   _.setLayer$currentLayer = Number(newLayer);
 
   const oldActivedLayer = document.querySelector(".layer.active");
@@ -867,12 +887,12 @@ export const setLayer = (newLayer) => {
   ) as HTMLInputElement;
   const layerOpacitySliderValue = document.getElementById(
     "layerOpacitySliderValue"
-  );
+  )!;
 
   document
     .querySelector(`.layer[tile-layer="${newLayer}"]`)
     ?.classList.add("active");
-  activeLayerLabel.innerHTML = activeLayerLabelHTML(
+  activeLayerLabel!.innerHTML = activeLayerLabelHTML(
     _.mul$maps[_.mul$ACTIVE_MAP].layers[newLayer]
   );
   if (layerOpacitySlider) {
@@ -893,7 +913,7 @@ export const setLayer = (newLayer) => {
 };
 
 export const updateLayers = () => {
-  const setLayerIsVisible = (layer, override = false) => {
+  const setLayerIsVisible = (layer: string, override = false) => {
     const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${layer}`);
     if (!setLayerVisBtn) throw new Error("dom not found");
     const layerNumber = Number(layer);
@@ -905,7 +925,7 @@ export const updateLayers = () => {
       : "👓";
     draw();
   };
-  const trashLayer = (layer) => {
+  const trashLayer = (layer: string) => {
     const layerNumber = Number(layer);
     _.mul$maps[_.mul$ACTIVE_MAP].layers.splice(layerNumber, 1);
     updateLayers();
@@ -913,7 +933,7 @@ export const updateLayers = () => {
     draw();
   };
 
-  _.init$layersElement.innerHTML = _.mul$maps[_.mul$ACTIVE_MAP].layers
+  _.init$layersElement!.innerHTML = _.mul$maps[_.mul$ACTIVE_MAP].layers
     .map((layer, index) =>
       layersElementHTML({
         layer,
@@ -925,28 +945,32 @@ export const updateLayers = () => {
     .join("\n");
 
   _.mul$maps[_.mul$ACTIVE_MAP].layers.forEach((_, index) => {
-    const selectLayerBtn = document.getElementById(`selectLayerBtn-${index}`);
-    const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${index}`);
-    const trashLayerBtn = document.getElementById(`trashLayerBtn-${index}`);
+    const selectLayerBtn = document.getElementById(`selectLayerBtn-${index}`)!;
+    const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${index}`)!;
+    const trashLayerBtn = document.getElementById(`trashLayerBtn-${index}`)!;
 
     selectLayerBtn.addEventListener("click", (e) => {
+      //@ts-expect-error FIXME: number?
       setLayer(target(e).getAttribute("tile-layer"));
       addToUndoStack();
     });
     setLayerVisBtn.addEventListener("click", (e) => {
+      //@ts-expect-error FIXME: type error
       setLayerIsVisible({ draw }, !!target(e).getAttribute("vis-layer"));
       addToUndoStack();
     });
     trashLayerBtn.addEventListener("click", (e) => {
+      //@ts-expect-error FIXME: number?
       trashLayer(target(e).getAttribute("trash-layer"));
       addToUndoStack();
     });
+    //@ts-expect-error FIXME: number?
     setLayerIsVisible(index, true);
   });
   setLayer(_.setLayer$currentLayer);
 };
 
-export const getTile = (key, allLayers = false) => {
+export const getTile = (key: string, allLayers = false) => {
   const layers = _.mul$maps[_.mul$ACTIVE_MAP].layers;
   _.getTile$editedEntity = undefined;
   const clicked = allLayers
@@ -979,10 +1003,14 @@ export const getTile = (key, allLayers = false) => {
     return true;
   } else if (_.getTile$editedEntity) {
     // console.log("Animated tile found", editedEntity)
+    //@ts-expect-error FIXME: never
     _.mul$selection = _.getTile$editedEntity.tiles;
     (document.getElementById("toggleFlipX") as HTMLInputElement).checked =
+      //@ts-expect-error FIXME: never
       _.getTile$editedEntity.isFlippedX;
+    //@ts-expect-error FIXME: never
     setLayer(_.getTile$editedEntity.layer);
+    //@ts-expect-error FIXME: never
     _.init$tileFrameSel.value = _.getTile$editedEntity.name;
     updateSelection();
     selectMode("frames");
@@ -992,7 +1020,7 @@ export const getTile = (key, allLayers = false) => {
   }
 };
 
-export const setActiveMap = (id) => {
+export const setActiveMap = (id: string) => {
   _.mul$ACTIVE_MAP = id;
   (document.getElementById("gridColorSel") as HTMLInputElement).value =
     _.mul$maps[_.mul$ACTIVE_MAP].gridColor || "#00FFFF";
@@ -1019,13 +1047,13 @@ export const reloadTilesets = () => {
     width,
     height,
     description = "n/a",
-  }) => {
+  }: Partial<TileSet>) => {
     return {
       src,
       name,
       gridWidth,
       gridHeight,
-      tileCount: gridWidth * gridHeight,
+      tileCount: gridWidth! * gridHeight!,
       tileData,
       symbolStartIdx,
       tileSize,
@@ -1034,11 +1062,11 @@ export const reloadTilesets = () => {
       description,
       width,
       height,
-    };
+    } as TileSet;
   };
 
   _.reloadTilesets$TILESET_ELEMENTS = [];
-  _.init$tilesetDataSel.innerHTML = "";
+  _.init$tilesetDataSel!.innerHTML = "";
   // Use to prevent old data from erasure
   const oldTilesets = { ..._.mul$tileSets };
   _.mul$tileSets = {};
@@ -1048,9 +1076,9 @@ export const reloadTilesets = () => {
     const newOpt = document.createElement("option");
     newOpt.innerText = tsImage.name || `tileset ${idx}`;
     newOpt.value = `${idx}`;
-    _.init$tilesetDataSel.appendChild(newOpt);
-    const tilesetImgElement = document.createElement("img");
-    tilesetImgElement.src = tsImage.src;
+    _.init$tilesetDataSel!.appendChild(newOpt);
+    const tilesetImgElement = document.createElement("img")!;
+    tilesetImgElement.src = tsImage.src!;
     tilesetImgElement.crossOrigin = "Anonymous";
     _.reloadTilesets$TILESET_ELEMENTS.push(tilesetImgElement);
   });
@@ -1080,18 +1108,18 @@ export const reloadTilesets = () => {
         // FIXME: temp value
         gridWidth: tileSize,
         gridHeight: tileSize,
-        symbolStartIdx: "",
+        symbolStartIdx: 0,
       });
     });
     // console.log("POPULATED", tileSets)
     reevaluateTilesetsData();
-    _.init$tilesetImage.src = _.reloadTilesets$TILESET_ELEMENTS[0].src;
-    _.init$tilesetImage.crossOrigin = "Anonymous";
+    _.init$tilesetImage!.src = _.reloadTilesets$TILESET_ELEMENTS[0].src;
+    _.init$tilesetImage!.crossOrigin = "Anonymous";
     updateSelection(false);
     updateTilesetGridContainer();
   });
   // finally current tileset loaded
-  _.init$tilesetImage.addEventListener("load", () => {
+  _.init$tilesetImage!.addEventListener("load", () => {
     draw();
     updateLayers();
     if (_.mul$selection.length === 0) _.mul$selection = [getTileData(0, 0)];
@@ -1099,13 +1127,13 @@ export const reloadTilesets = () => {
     updateTilesetDataList();
     updateTilesetDataList(true);
     updateTilesetGridContainer();
-    const tilesetImage = _.init$tilesetImage;
+    const tilesetImage = _.init$tilesetImage!;
     document.getElementById(
       "tilesetSrcLabel"
-    ).innerHTML = `src: <a href="${tilesetImage.src}">${tilesetImage.src}</a>`;
-    document.getElementById("tilesetSrcLabel").title = tilesetImage.src;
+    )!.innerHTML = `src: <a href="${tilesetImage.src}">${tilesetImage.src}</a>`;
+    document.getElementById("tilesetSrcLabel")!.title = tilesetImage.src;
     const tilesetExtraInfo = _.mul$IMAGES.find(
-      (ts) => ts.src === tilesetImage.src
+      (ts) => ts.src === tilesetImage!.src
     );
 
     // console.log("CHANGED TILESET", tilesetExtraInfo, IMAGES)
@@ -1114,37 +1142,37 @@ export const reloadTilesets = () => {
       if (tilesetExtraInfo.link) {
         document.getElementById(
           "tilesetHomeLink"
-        ).innerHTML = `link: <a href="${tilesetExtraInfo.link}">${tilesetExtraInfo.link}</a> `;
-        document.getElementById("tilesetHomeLink").title =
+        )!.innerHTML = `link: <a href="${tilesetExtraInfo.link}">${tilesetExtraInfo.link}</a> `;
+        document.getElementById("tilesetHomeLink")!.title =
           tilesetExtraInfo.link;
       } else {
-        document.getElementById("tilesetHomeLink").innerHTML = "";
+        document.getElementById("tilesetHomeLink")!.innerHTML = "";
       }
       if (tilesetExtraInfo.description) {
-        document.getElementById("tilesetDescriptionLabel").innerText =
+        document.getElementById("tilesetDescriptionLabel")!.innerText =
           tilesetExtraInfo.description;
-        document.getElementById("tilesetDescriptionLabel").title =
+        document.getElementById("tilesetDescriptionLabel")!.title =
           tilesetExtraInfo.description;
       } else {
-        document.getElementById("tilesetDescriptionLabel").innerText = "";
+        document.getElementById("tilesetDescriptionLabel")!.innerText = "";
       }
       if (tilesetExtraInfo.tileSize) {
         setCropSize(tilesetExtraInfo.tileSize);
       }
     }
-    setCropSize(_.mul$tileSets[_.init$tilesetDataSel.value].tileSize);
+    setCropSize(_.mul$tileSets[_.init$tilesetDataSel!.value].tileSize);
     updateZoom();
     // ).style = `left:${_.mul$WIDTH}px;`;
     document.querySelector<HTMLElement>(
       '.canvas_resizer[resizerdir="x"]'
-    ).style.left = `${_.mul$WIDTH}px;`;
+    )!.style.left = `${_.mul$WIDTH}px;`;
 
     if (_.mul$undoStepPosition === -1) addToUndoStack(); //initial undo stack entry
   });
 };
 
 export const updateMaps = () => {
-  const mapsDataSel = _.init$mapsDataSel;
+  const mapsDataSel = _.init$mapsDataSel!;
   mapsDataSel.innerHTML = "";
   let lastMap = _.mul$ACTIVE_MAP;
   Object.keys(_.mul$maps).forEach((key, idx) => {

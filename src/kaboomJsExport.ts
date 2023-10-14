@@ -1,12 +1,17 @@
+import { Tile, TileSet } from "./TilemapEditor/store";
+
 // kaboomJs example exporter
 export default ({
   flattenedData,
   // maps,
-  tileSets,
   // activeMap,
   // downloadAsTextFile,
+  tileSets,
+}: {
+  flattenedData: { flattenedData: [] }[];
+  tileSets: Record<string, TileSet>;
 }) => {
-  const getTileData = (tileSet, tileSetIdx) =>
+  const getTileData = (tileSet: TileSet, tileSetIdx: number) =>
     Array.from({ length: tileSet.tileCount }, (x, i) => i)
       .map((tile) => {
         const x = tile % tileSet.gridWidth;
@@ -23,7 +28,7 @@ export default ({
       })
       .join("\n");
 
-  const getAsciiMap = (flattenedDataLayer) =>
+  const getAsciiMap = (flattenedDataLayer: Tile[][]) =>
     `\n${
       flattenedDataLayer
         .map(
@@ -43,9 +48,9 @@ export default ({
       });
 
       // Load assets
-      ${Object.values(tileSets)
+      ${Object.values<TileSet>(tileSets)
         .map(
-          (tileSet: any, tileSetIdx) => `
+          (tileSet, tileSetIdx) => `
             loadSprite("tileset-${tileSetIdx}", "${tileSet.src}", {
             sliceX: ${tileSet.gridWidth},
             sliceY: ${tileSet.gridHeight},

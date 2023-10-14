@@ -1,3 +1,5 @@
+import { ImageJSON } from "../TilemapEditor/store";
+
 export default [
   {
     src: "https://i.imgur.com/ztwPZOI.png",
@@ -10,4 +12,4 @@ export default [
   {
     src: "./assets/free.png",
   },
-];
+] as ImageJSON[];

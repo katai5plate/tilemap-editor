@@ -1,5 +1,5 @@
 // upload to imgur, then return the src
-export default (blob) => {
+export default (blob: Blob) => {
   const formData = new FormData();
   formData.append("type", "file");
   formData.append("image", blob);

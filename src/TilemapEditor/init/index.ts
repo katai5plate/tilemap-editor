@@ -1,6 +1,7 @@
+//@ts-nocheck
 import { tilemapEditorRootHTML } from "../../constants/html.js";
 import { toBase64, drawGrid, getEmptyLayer } from "../utils.js";
-import _ from "../state.js";
+import { AppState, ImageJSON, Tile, TileMapData, _ } from "../store.js";
 import {
   getEmptyMap,
   getAppState,
@@ -35,12 +36,11 @@ import {
   restoreFromUndoStackData,
 } from "../features.js";
 import { TOOLS, ZOOM_LEVELS } from "../../constants/enums.js";
-import { QS, Tile, XY } from "../type";
 import { target } from "../../helper.js";
 
-export default (exports) =>
+export default (exports: Function) =>
   (
-    attachToId,
+    attachToId: number,
     {
       tileMapData, // the main data
       tileSize,
@@ -53,27 +53,49 @@ export default (exports) =>
       tileMapExporters,
       tileMapImporters,
       onUpdate = () => {},
-      onMouseUp = null as () => void,
+      onMouseUp,
       appState,
+    }: {
+      tileMapData: TileMapData;
+      tileSize: number;
+      mapWidth: number;
+      mapHeight: number;
+      tileSetImages: ImageJSON[];
+      applyButtonText: string;
+      onApply: () => void;
+      tileSetLoaders: unknown;
+      tileMapExporters: unknown;
+      tileMapImporters: unknown;
+      onUpdate?: () => void;
+      onMouseUp?: () => void;
+      appState: AppState;
     }
   ) => {
     // Call once on element to add behavior, toggle on/off isDraggable attr to enable
     const draggable = ({
       element,
-      onElement = null,
+      onElement,
       isDrag = false,
-      onDrag = null,
+      onDrag,
       limitX = false,
       limitY = false,
-      onRelease = null as (xy: XY) => void,
+      onRelease,
+    }: {
+      element: HTMLElement;
+      onElement?: () => void;
+      isDrag: boolean;
+      onDrag?: (e: MouseEvent) => void;
+      limitX?: boolean;
+      limitY?: boolean;
+      onRelease?: () => void;
     }) => {
-      element.setAttribute("isDraggable", isDrag);
+      element.setAttribute("isDraggable", `${isDrag}`);
       let isMouseDown = false;
-      let mouseX;
-      let mouseY;
+      let mouseX: number;
+      let mouseY: number;
       let elementX = 0;
       let elementY = 0;
-      const onMouseMove = (event) => {
+      const onMouseMove = (event: MouseEvent) => {
         if (!isMouseDown || element.getAttribute("isDraggable") === "false")
           return;
         const deltaX = event.clientX - mouseX;
@@ -202,7 +224,7 @@ export default (exports) =>
       if (override === null)
         _.toggleSymbolsVisible$DISPLAY_SYMBOLS =
           !_.toggleSymbolsVisible$DISPLAY_SYMBOLS;
-      document.getElementById("setSymbolsVisBtn").innerHTML =
+      document.getElementById("setSymbolsVisBtn")!.innerHTML =
         _.toggleSymbolsVisible$DISPLAY_SYMBOLS ? "👁️" : "👓";
       updateTilesetGridContainer();
     };
@@ -226,15 +248,15 @@ export default (exports) =>
       updateZoom();
       draw(false);
       const { analizedTiles, uniqueTiles } = getTilesAnalisis(
-        _.init$canvas.getContext("2d"),
+        _.init$canvas!.getContext("2d")!,
         _.mul$WIDTH,
         _.mul$HEIGHT,
         _.mul$SIZE_OF_CROP
       );
-      const data = _.init$canvas.toDataURL();
+      const data = _.init$canvas!.toDataURL();
       const image = new Image();
       image.src = data;
-      const ctx = _.init$canvas.getContext("2d");
+      const ctx = _.init$canvas!.getContext("2d")!;
       _.mul$ZOOM = prevZoom;
       updateZoom();
       draw(false);
@@ -244,8 +266,8 @@ export default (exports) =>
           const fillStyle = `rgba(255, 0, 0, ${1 / t.times - 0.35})`;
           ctx.fillStyle = fillStyle;
           ctx.fillRect(
-            c.x * _.mul$ZOOM,
-            c.y * _.mul$ZOOM,
+            c.x! * _.mul$ZOOM,
+            c.y! * _.mul$ZOOM,
             _.mul$SIZE_OF_CROP * _.mul$ZOOM,
             _.mul$SIZE_OF_CROP * _.mul$ZOOM
           );
@@ -422,7 +444,7 @@ export default (exports) =>
               _.mul$maps[_.mul$ACTIVE_MAP].tileSize
             : _.mul$SIZE_OF_CROP
         }`;
-        (document.getElementById("gridCropSize") as HTMLInputElement).value =
+        (document.getElementById("gridCropSize")! as HTMLInputElement).value =
           _.init$cropSize.value;
         updateMaps();
         updateMapSize({
@@ -505,21 +527,23 @@ export default (exports) =>
     });
     attachTo.className = "tilemap_editor_root";
     _.init$tilesetImage = document.createElement("img");
-    _.init$cropSize = document.getElementById("cropSize") as HTMLInputElement;
+    _.init$cropSize = document.getElementById("cropSize")! as HTMLInputElement;
 
-    _.init$confirmBtn = document.getElementById("confirmBtn");
+    _.init$confirmBtn = document.getElementById(
+      "confirmBtn"
+    ) as HTMLButtonElement;
     if (onApply) {
       _.init$confirmBtn.innerText = applyButtonText || "Ok";
     } else {
       _.init$confirmBtn.style.display = "none";
     }
-    _.init$canvas = document.getElementById("mapCanvas") as HTMLCanvasElement;
+    _.init$canvas = document.getElementById("mapCanvas")! as HTMLCanvasElement;
     _.init$tilesetContainer = document.querySelector(".tileset-container");
     _.init$tilesetSelection = document.querySelector(
       ".tileset-container-selection"
     );
-    // tilesetGridContainer = document.getElementById("tilesetGridContainer");
-    _.init$layersElement = document.getElementById("layers");
+    // tilesetGridContainer = document.getElementById("tilesetGridContainer")!;
+    _.init$layersElement = document.getElementById("layers")!;
     _.init$objectParametersEditor = document.getElementById(
       "objectParametersEditor"
     );
@@ -559,7 +583,7 @@ export default (exports) =>
     _.init$tilesetContainer.addEventListener("pointerup", (e) => {
       setTimeout(() => {
         (
-          document.getElementById("tilesetDataDetails") as HTMLDetailsElement
+          document.getElementById("tilesetDataDetails")! as HTMLDetailsElement
         ).open = false;
       }, 100);
 
@@ -606,7 +630,7 @@ export default (exports) =>
         renameCurrentTileSymbol();
       }
     });
-    document.getElementById("addLayerBtn").addEventListener("click", () => {
+    document.getElementById("addLayerBtn")!.addEventListener("click", () => {
       addToUndoStack();
       addLayer();
     });
@@ -619,7 +643,7 @@ export default (exports) =>
       setActiveMap(target(e).value);
       addToUndoStack();
     });
-    document.getElementById("addMapBtn").addEventListener("click", () => {
+    document.getElementById("addMapBtn")!.addEventListener("click", () => {
       const suggestMapName = `Map ${Object.keys(_.mul$maps).length + 1}`;
       const result = window.prompt("Enter new map key...", suggestMapName);
       if (result !== null) {
@@ -634,24 +658,26 @@ export default (exports) =>
         updateMaps();
       }
     });
-    document.getElementById("duplicateMapBtn").addEventListener("click", () => {
-      const makeNewKey = (key) => {
-        const suggestedNew = `${key}_copy`;
-        if (suggestedNew in _.mul$maps) {
-          return makeNewKey(suggestedNew);
-        }
-        return suggestedNew;
-      };
-      addToUndoStack();
-      const newMapKey = makeNewKey(_.mul$ACTIVE_MAP);
-      _.mul$maps[newMapKey] = {
-        ...JSON.parse(JSON.stringify(_.mul$maps[_.mul$ACTIVE_MAP])),
-        name: newMapKey,
-      }; // todo prompt to ask for name
-      updateMaps();
-      addToUndoStack();
-    });
-    document.getElementById("removeMapBtn").addEventListener("click", () => {
+    document
+      .getElementById("duplicateMapBtn")!
+      .addEventListener("click", () => {
+        const makeNewKey = (key) => {
+          const suggestedNew = `${key}_copy`;
+          if (suggestedNew in _.mul$maps) {
+            return makeNewKey(suggestedNew);
+          }
+          return suggestedNew;
+        };
+        addToUndoStack();
+        const newMapKey = makeNewKey(_.mul$ACTIVE_MAP);
+        _.mul$maps[newMapKey] = {
+          ...JSON.parse(JSON.stringify(_.mul$maps[_.mul$ACTIVE_MAP])),
+          name: newMapKey,
+        }; // todo prompt to ask for name
+        updateMaps();
+        addToUndoStack();
+      });
+    document.getElementById("removeMapBtn")!.addEventListener("click", () => {
       addToUndoStack();
       delete _.mul$maps[_.mul$ACTIVE_MAP];
       setActiveMap(Object.keys(_.mul$maps)[0]);
@@ -665,7 +691,7 @@ export default (exports) =>
     _.init$tileDataSel.addEventListener("change", () => {
       selectMode();
     });
-    document.getElementById("addTileTagBtn").addEventListener("click", () => {
+    document.getElementById("addTileTagBtn")!.addEventListener("click", () => {
       const getEmptyTilesetTag = (name, code, tiles = {}) => ({
         name,
         code,
@@ -713,37 +739,40 @@ export default (exports) =>
     _.state$el.animEnd().addEventListener("change", (e) => {
       getCurrentAnimation().end = Number(_.state$el.animEnd().value);
     });
-    document.getElementById("addTileFrameBtn").addEventListener("click", () => {
-      const result = window.prompt(
-        "Name your object",
-        `obj${
-          Object.keys(_.mul$tileSets[_.init$tilesetDataSel.value]?.frames || {})
-            .length
-        }`
-      );
-      if (result !== null) {
-        if (result in _.mul$tileSets[_.init$tilesetDataSel.value].frames) {
-          alert("Object already exists");
-          return;
-        }
-        _.mul$tileSets[_.init$tilesetDataSel.value].frames[result] = {
-          frameCount: Number(_.state$el.tileFrameCount().value),
-          animations: {
-            a1: {
-              start: 1,
-              end: Number(_.state$el.tileFrameCount().value) || 1, //todo move in here
-              name: "a1",
-              loop: _.state$el.animLoop().checked,
-              speed: Number(_.state$el.animSpeed().value),
+    document
+      .getElementById("addTileFrameBtn")!
+      .addEventListener("click", () => {
+        const result = window.prompt(
+          "Name your object",
+          `obj${
+            Object.keys(
+              _.mul$tileSets[_.init$tilesetDataSel.value]?.frames || {}
+            ).length
+          }`
+        );
+        if (result !== null) {
+          if (result in _.mul$tileSets[_.init$tilesetDataSel.value].frames) {
+            alert("Object already exists");
+            return;
+          }
+          _.mul$tileSets[_.init$tilesetDataSel.value].frames[result] = {
+            frameCount: Number(_.state$el.tileFrameCount().value),
+            animations: {
+              a1: {
+                start: 1,
+                end: Number(_.state$el.tileFrameCount().value) || 1, //todo move in here
+                name: "a1",
+                loop: _.state$el.animLoop().checked,
+                speed: Number(_.state$el.animSpeed().value),
+              },
             },
-          },
-        };
-        setFramesToSelection(result);
-        updateTilesetDataList(true);
-        _.init$tileFrameSel.value = result;
-        updateTilesetGridContainer();
-      }
-    });
+          };
+          setFramesToSelection(result);
+          updateTilesetDataList(true);
+          _.init$tileFrameSel.value = result;
+          updateTilesetGridContainer();
+        }
+      });
     document
       .getElementById("removeTileFrameBtn")
       .addEventListener("click", () => {
@@ -819,7 +848,7 @@ export default (exports) =>
       _.state$el.animSpeed().value = getCurrentAnimation()?.speed || 1;
       updateTilesetGridContainer();
     });
-    document.getElementById("addTileAnimBtn").addEventListener("click", () => {
+    document.getElementById("addTileAnimBtn")!.addEventListener("click", () => {
       const result = window.prompt(
         "Name your animation",
         `anim${
@@ -953,7 +982,7 @@ export default (exports) =>
       .getElementById("replaceTilesetBtn")
       .addEventListener("click", () => {
         if (_.init_state$selectedTileSetLoader.onSelectImage) {
-          document.getElementById("tilesetReplaceInput").click();
+          document.getElementById("tilesetReplaceInput")!.click();
         }
         if (_.init_state$selectedTileSetLoader.prompt) {
           _.init_state$selectedTileSetLoader.prompt(replaceSelectedTileSet);
@@ -974,9 +1003,9 @@ export default (exports) =>
         });
       });
     // remove tileset
-    document.getElementById("addTilesetBtn").addEventListener("click", () => {
+    document.getElementById("addTilesetBtn")!.addEventListener("click", () => {
       if (_.init_state$selectedTileSetLoader.onSelectImage) {
-        document.getElementById("tilesetReadInput").click();
+        document.getElementById("tilesetReadInput")!.click();
       }
       if (_.init_state$selectedTileSetLoader.prompt) {
         _.init_state$selectedTileSetLoader.prompt(addNewTileSet);
@@ -1029,7 +1058,7 @@ export default (exports) =>
     _.init$canvas.addEventListener("contextmenu", (e) => e.preventDefault());
     draggable({
       onElement: _.init$canvas,
-      element: document.getElementById("canvas_wrapper"),
+      element: document.getElementById("canvas_wrapper")!,
     });
     _.init$canvas.addEventListener("pointermove", (e) => {
       if (_.mul$isMouseDown && _.mul$ACTIVE_TOOL !== 2) toggleTile(e);
@@ -1076,7 +1105,7 @@ export default (exports) =>
         if (target(e).getAttribute("name") === "tool")
           setActiveTool(Number(target(e).value));
       });
-    document.getElementById("gridCropSize").addEventListener("change", (e) => {
+    document.getElementById("gridCropSize")!.addEventListener("change", (e) => {
       setCropSize(Number(target(e).value));
     });
     _.init$cropSize.addEventListener("change", (e) => {
@@ -1092,7 +1121,7 @@ export default (exports) =>
       );
     }
 
-    document.getElementById("renameMapBtn").addEventListener("click", () => {
+    document.getElementById("renameMapBtn")!.addEventListener("click", () => {
       const newName = window.prompt(
         "Change map name:",
         _.mul$maps[_.mul$ACTIVE_MAP].name || "Map"
@@ -1111,7 +1140,7 @@ export default (exports) =>
       }
     });
 
-    const fileMenuDropDown = document.getElementById("fileMenuDropDown");
+    const fileMenuDropDown = document.getElementById("fileMenuDropDown")!;
     const makeMenuItem = (name, value, description) => {
       const menuItem = document.createElement("span") as HTMLInputElement;
       menuItem.className = "item";
@@ -1148,8 +1177,8 @@ export default (exports) =>
         // apiTileMapImporters[key].setData = (files) => importer.onSelectFiles(loadData, files);
       }
     );
-    document.getElementById("toggleFlipX").addEventListener("change", (e) => {
-      document.getElementById("flipBrushIndicator").style.transform = target(e)
+    document.getElementById("toggleFlipX")!.addEventListener("change", (e) => {
+      document.getElementById("flipBrushIndicator")!.style.transform = target(e)
         .checked
         ? "scale(-1, 1)"
         : "scale(1, 1)";
@@ -1160,20 +1189,20 @@ export default (exports) =>
         if (e.code === "KeyY") redo();
       }
     });
-    document.getElementById("gridColorSel").addEventListener("change", (e) => {
+    document.getElementById("gridColorSel")!.addEventListener("change", (e) => {
       console.log("grid col", target(e).value);
       _.mul$maps[_.mul$ACTIVE_MAP].gridColor = target(e).value;
       draw();
     });
-    document.getElementById("showGrid").addEventListener("change", (e) => {
+    document.getElementById("showGrid")!.addEventListener("change", (e) => {
       _.init$SHOW_GRID = target(e).checked;
       draw();
     });
 
-    document.getElementById("undoBtn").addEventListener("click", undo);
-    document.getElementById("redoBtn").addEventListener("click", redo);
-    document.getElementById("zoomIn").addEventListener("click", zoomIn);
-    document.getElementById("zoomOut").addEventListener("click", zoomOut);
+    document.getElementById("undoBtn")!.addEventListener("click", undo);
+    document.getElementById("redoBtn")!.addEventListener("click", redo);
+    document.getElementById("zoomIn")!.addEventListener("click", zoomIn);
+    document.getElementById("zoomOut")!.addEventListener("click", zoomOut);
     document
       .getElementById("setSymbolsVisBtn")
       .addEventListener("click", () => toggleSymbolsVisible());

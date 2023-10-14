@@ -4,6 +4,7 @@ import getMapFromGist from "./getMapFromGist.js";
 import kaboomJsExport from "./kaboomJsExport.js";
 import uploadImageToImgur from "./uploadImageToImgur.js";
 import TilemapEditor from "./TilemapEditor/index.js";
+import { DeferredPrompt, TileMapData, TileSet } from "./TilemapEditor/store.js";
 // import ioJsonData from "./constants/ioJsonData.js";
 
 let _tileSetImages = tileSetImages;
@@ -11,7 +12,7 @@ let _tileSetImages = tileSetImages;
 let tileSize = 32;
 let mapWidth = 10;
 let mapHeight = 10;
-let tileMapData; //= ioJsonData;
+let tileMapData: TileMapData; //= ioJsonData;
 const initTilemapEditor = () => {
   console.log("INIT with", { tileSetImages: _tileSetImages, tileSize });
   // TODO move this under after parsing url params and get everything from there
@@ -33,7 +34,7 @@ const initTilemapEditor = () => {
     tileSetLoaders: {
       fromUrl: {
         name: "Any url", // name is required and used for the loader's title in the select menu
-        prompt: (setSrc) => {
+        prompt: (setSrc: (url: string) => void) => {
           // Pass prompt ot onSelectImage. Prompt lets you do anything without asking the user to select a file
           const fileUrl = window.prompt(
             "What is the url of the tileset?",
@@ -44,7 +45,11 @@ const initTilemapEditor = () => {
       },
       imgur: {
         name: "Imgur (host)",
-        onSelectImage: (setSrc, file, base64) => {
+        onSelectImage: (
+          setSrc: (url: string) => void,
+          file: File,
+          base64: string
+        ) => {
           // In case you want them to give you a file from the fs, you can do this instead of prompt
           uploadImageToImgur(file).then((result) => {
             console.log(file, base64);
@@ -88,7 +93,17 @@ const initTilemapEditor = () => {
     },
     // If passed, a new button gets added to the header, upon being clicked, you can get data from the tilemap editor and trigger events
     onApply: {
-      onClick: ({ flattenedData, maps, tileSets, activeMap }) => {
+      onClick: ({
+        flattenedData,
+        // maps,
+        tileSets,
+      }: // activeMap,
+      {
+        flattenedData: {
+          flattenedData: [];
+        }[];
+        tileSets: Record<string, TileSet>;
+      }) => {
         console.log("onClick, gets the data too");
         const copyText = document.createElement("input");
         document.body.appendChild(copyText);
@@ -108,7 +123,7 @@ const initTilemapEditor = () => {
       },
       buttonText: "Copy Kb to clip", // controls the apply button's text
     },
-    onUpdate(ev) {
+    onUpdate(_ev: Event) {
       // callback for when the app updates its state (loaded data, tool, etc)
       // console.log("-->>", ev)
     },
@@ -139,9 +154,9 @@ if (window.location.href.includes("?")) {
           }
           extractedSourceMatch = image.description.match(/source\:\s*(.*)/);
         }
-        let extractedTilesetName;
+        let extractedTilesetName: string[] = [];
         if (image.description && image.description.includes("name:")) {
-          extractedTilesetName = image.description.match(/name\:\s*(.*)/);
+          extractedTilesetName = image.description.match(/name\:\s*(.*)/)!;
         }
         return {
           src: image.link,
@@ -172,7 +187,7 @@ if (window.location.href.includes("?")) {
   initTilemapEditor();
 }
 // Pwa stuff
-let newWorker;
+let newWorker: ServiceWorker;
 function showUpdateBar() {
   let snackbar = document.getElementById("snackbar");
   if (snackbar) {
@@ -196,7 +211,7 @@ if ("serviceWorker" in navigator) {
     console.log("Service Worker Registered");
     reg.addEventListener("updatefound", () => {
       // A wild service worker has appeared in reg.installing!
-      newWorker = reg.installing;
+      newWorker = reg.installing!;
 
       if (newWorker) {
         newWorker.addEventListener("statechange", () => {
@@ -215,25 +230,25 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
-let refreshing;
+let refreshing: boolean;
 navigator.serviceWorker.addEventListener("controllerchange", function () {
   if (refreshing) return;
   window.location.reload();
   refreshing = true;
 });
 
-let deferredPrompt;
+let deferredPrompt: DeferredPrompt | null;
 const addBtn = document.getElementById("addPwaBtn");
 if (addBtn) {
   addBtn.style.display = "none";
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
-    deferredPrompt = e;
+    deferredPrompt = e as DeferredPrompt;
     addBtn.style.display = "block";
     addBtn.addEventListener("click", () => {
       addBtn.style.display = "none";
-      deferredPrompt.prompt();
-      deferredPrompt.userChoice.then((choiceResult) => {
+      deferredPrompt!.prompt();
+      deferredPrompt!.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === "accepted") {
           console.log("User accepted the A2HS prompt");
         }

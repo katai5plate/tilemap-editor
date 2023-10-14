@@ -1,5 +1,10 @@
+import { ImageJSON } from "./TilemapEditor/store";
+
 //Get imgur gallery from an id  -- example: SjjsjTm
-export default (album_id, cb) => {
+export default (
+  album_id: string,
+  cb: (data: { images: ImageJSON[] }) => void
+) => {
   const api_key = "a85ae3a537d345f";
   const request_url = "https://api.imgur.com/3/album/" + album_id;
   const requestAlbum = () => {
@@ -15,7 +20,7 @@ export default (album_id, cb) => {
     req.setRequestHeader("Authorization", "Client-ID " + api_key);
     req.send(null);
   };
-  const processRequest = (response_text) => {
+  const processRequest = (response_text: string) => {
     if (response_text == "Not found") {
       console.log("Imgur album not found.");
     } else {

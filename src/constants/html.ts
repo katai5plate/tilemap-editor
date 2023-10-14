@@ -1,6 +1,16 @@
-export const tilemapEditorRootHTML = ({ width, height, mapTileWidth }) => `
+import { Layer } from "../TilemapEditor/store";
+
+export const tilemapEditorRootHTML = ({
+  width,
+  height,
+  mapTileWidth,
+}: {
+  width: number;
+  height: number;
+  mapTileWidth: number;
+}) => `
 <div id="tilemapjs_root" class="card tilemapjs_root">
- <a id="downloadAnchorElem" style="display:none"></a>
+    <a id="downloadAnchorElem" style="display:none"></a>
 <div class="tileset_opt_field header">
 <div class="menu file">
      <span> File </span>
@@ -215,7 +225,7 @@ export const tilemapEditorRootHTML = ({ width, height, mapTileWidth }) => `
 </div>
  `;
 
-export const activeLayerLabelHTML = ({ name, opacity }) => `
+export const activeLayerLabelHTML = ({ name, opacity }: Layer) => `
  Editing Layer: ${name}
  <div class="dropdown left">
      <div class="item nohover">Layer: ${name} </div>
@@ -229,11 +239,19 @@ export const activeLayerLabelHTML = ({ name, opacity }) => `
  </div>
 `;
 
-export const layersElementHTML = ({ index, layer, enableButton }) => `
+export const layersElementHTML = ({
+  index,
+  layer,
+  enableButton,
+}: {
+  index: number;
+  layer: Layer;
+  enableButton: boolean;
+}) => `
 <div class="layer">
   <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${
   layer.name
-}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
+}">${layer.name} ${(layer.opacity ?? 0) < 1 ? ` (${layer.opacity})` : ""}</div>
   <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
   <div id="trashLayerBtn-${index}" trash-layer="${index}" ${
   enableButton ? "" : `disabled="true"`

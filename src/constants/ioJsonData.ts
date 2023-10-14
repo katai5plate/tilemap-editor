@@ -1,4 +1,7 @@
 // Example data structure that tiledmap-editor can read and write
+
+import { TileMapData } from "../TilemapEditor/store";
+
 //https://imgur.com/a/SjjsjTm
 export default {
   tileSets: {
@@ -1693,4 +1696,4 @@ export default {
       height: 320,
     },
   },
-};
+} as TileMapData;

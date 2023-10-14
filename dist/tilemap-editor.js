@@ -1,3 +1,69 @@
+// memo: グローバルかつ再代入の変数の識別子
+// _.init$ -- init で書き換わる
+// _.mul$ -- 複数個所で書き換わる
+// _.state$ -- 状態管理オブジェクト
+define("src/TilemapEditor/store", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports._ = void 0;
+    exports._ = {
+        state$el: {
+            tileFrameCount: undefined,
+            animStart: undefined,
+            animEnd: undefined,
+            renameTileFrameBtn: undefined,
+            renameTileAnimBtn: undefined,
+            animSpeed: undefined,
+            animLoop: undefined,
+        },
+        init$tilesetImage: undefined,
+        init$canvas: undefined,
+        init$tilesetContainer: undefined,
+        init$tilesetSelection: undefined,
+        init$cropSize: undefined,
+        init$confirmBtn: undefined,
+        init$layersElement: undefined,
+        init$tileDataSel: undefined,
+        init$tileFrameSel: undefined,
+        init$tileAnimSel: undefined,
+        init$tilesetDataSel: undefined,
+        init$mapsDataSel: undefined,
+        init$objectParametersEditor: undefined,
+        mul$mapTileHeight: undefined,
+        mul$mapTileWidth: undefined,
+        reloadTilesets$TILESET_ELEMENTS: [],
+        mul$IMAGES: [{ src: "" }],
+        mul$ZOOM: 1,
+        mul$SIZE_OF_CROP: 32,
+        mul$WIDTH: 0,
+        mul$HEIGHT: 0,
+        mul$PREV_ACTIVE_TOOL: 0,
+        mul$ACTIVE_TOOL: 0,
+        mul$ACTIVE_MAP: "",
+        toggleSymbolsVisible$DISPLAY_SYMBOLS: false,
+        init$SHOW_GRID: false,
+        mul$selection: [],
+        setLayer$currentLayer: 0,
+        mul$isMouseDown: false,
+        mul$maps: {},
+        mul$tileSets: {},
+        init_state$apiTileSetLoaders: {},
+        init_state$selectedTileSetLoader: {
+            onSelectImage: (_, __, ___) => { },
+            prompt: (_) => { },
+        },
+        init_state$apiTileMapExporters: {},
+        init_state$apiTileMapImporters: {},
+        init$apiOnUpdateCallback: () => { },
+        init$apiOnMouseUp: (_, __) => { },
+        getTile$editedEntity: undefined,
+        updateSelection$selectionSize: [1, 1],
+        mul$undoStepPosition: -1,
+        clearUndoStack$undoStack: [],
+        mul$zoomIndex: 1,
+        init$tileSelectStart: null,
+    };
+});
 define("src/getImgurGallery", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -85,10 +151,9 @@ define("src/kaboomJsExport", ["require", "exports"], function (require, exports)
     // kaboomJs example exporter
     exports.default = ({ flattenedData, 
     // maps,
-    tileSets,
     // activeMap,
     // downloadAsTextFile,
-     }) => {
+    tileSets, }) => {
         const getTileData = (tileSet, tileSetIdx) => Array.from({ length: tileSet.tileCount }, (x, i) => i)
             .map((tile) => {
             const x = tile % tileSet.gridWidth;
@@ -182,9 +247,9 @@ define("src/constants/html", ["require", "exports"], function (require, exports)
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.layersElementHTML = exports.activeLayerLabelHTML = exports.tilemapEditorRootHTML = void 0;
-    const tilemapEditorRootHTML = ({ width, height, mapTileWidth }) => `
+    const tilemapEditorRootHTML = ({ width, height, mapTileWidth, }) => `
 <div id="tilemapjs_root" class="card tilemapjs_root">
- <a id="downloadAnchorElem" style="display:none"></a>
+    <a id="downloadAnchorElem" style="display:none"></a>
 <div class="tileset_opt_field header">
 <div class="menu file">
      <span> File </span>
@@ -413,9 +478,9 @@ define("src/constants/html", ["require", "exports"], function (require, exports)
  </div>
 `;
     exports.activeLayerLabelHTML = activeLayerLabelHTML;
-    const layersElementHTML = ({ index, layer, enableButton }) => `
+    const layersElementHTML = ({ index, layer, enableButton, }) => `
 <div class="layer">
-  <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}">${layer.name} ${layer.opacity < 1 ? ` (${layer.opacity})` : ""}</div>
+  <div id="selectLayerBtn-${index}" class="layer select_layer" tile-layer="${index}" title="${layer.name}">${layer.name} ${(layer.opacity ?? 0) < 1 ? ` (${layer.opacity})` : ""}</div>
   <span id="setLayerVisBtn-${index}" vis-layer="${index}"></span>
   <div id="trashLayerBtn-${index}" trash-layer="${index}" ${enableButton ? "" : `disabled="true"`}>🗑️</div>
 </div>
@@ -459,75 +524,6 @@ define("src/TilemapEditor/utils", ["require", "exports"], function (require, exp
     });
     exports.getEmptyLayer = getEmptyLayer;
 });
-define("src/TilemapEditor/type", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-});
-// memo: グローバルかつ再代入の変数の識別子
-// _.init$ -- init で書き換わる
-// _.mul$ -- 複数個所で書き換わる
-// _.state$ -- 状態管理オブジェクト
-define("src/TilemapEditor/state", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.default = {
-        state$el: {
-            tileFrameCount: (() => { }),
-            animStart: (() => { }),
-            animEnd: (() => { }),
-            renameTileFrameBtn: (() => { }),
-            renameTileAnimBtn: (() => { }),
-            animSpeed: (() => { }),
-            animLoop: (() => { }),
-        },
-        init$tilesetImage: undefined,
-        init$canvas: undefined,
-        init$tilesetContainer: undefined,
-        init$tilesetSelection: undefined,
-        init$cropSize: undefined,
-        init$confirmBtn: undefined,
-        init$layersElement: undefined,
-        init$tileDataSel: undefined,
-        init$tileFrameSel: undefined,
-        init$tileAnimSel: undefined,
-        init$tilesetDataSel: undefined,
-        init$mapsDataSel: undefined,
-        init$objectParametersEditor: undefined,
-        mul$mapTileHeight: undefined,
-        mul$mapTileWidth: undefined,
-        reloadTilesets$TILESET_ELEMENTS: [],
-        mul$IMAGES: [{ src: "" }],
-        mul$ZOOM: 1,
-        mul$SIZE_OF_CROP: 32,
-        mul$WIDTH: 0,
-        mul$HEIGHT: 0,
-        mul$PREV_ACTIVE_TOOL: 0,
-        mul$ACTIVE_TOOL: 0,
-        mul$ACTIVE_MAP: "",
-        toggleSymbolsVisible$DISPLAY_SYMBOLS: false,
-        init$SHOW_GRID: false,
-        mul$selection: [],
-        setLayer$currentLayer: 0,
-        mul$isMouseDown: false,
-        mul$maps: {},
-        mul$tileSets: {},
-        init_state$apiTileSetLoaders: {},
-        init_state$selectedTileSetLoader: {
-            onSelectImage: (() => { }),
-            prompt: (() => { }),
-        },
-        init_state$apiTileMapExporters: {},
-        init_state$apiTileMapImporters: {},
-        init$apiOnUpdateCallback: (() => { }),
-        init$apiOnMouseUp: (() => { }),
-        getTile$editedEntity: undefined,
-        updateSelection$selectionSize: [1, 1],
-        mul$undoStepPosition: -1,
-        clearUndoStack$undoStack: [],
-        mul$zoomIndex: 1,
-        init$tileSelectStart: null,
-    };
-});
 define("src/constants/enums", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -545,7 +541,7 @@ define("src/constants/enums", ["require", "exports"], function (require, exports
         .map((_, i) => String.fromCharCode(165 + i));
     exports.ZOOM_LEVELS = [0.25, 0.5, 1, 2, 3, 4];
 });
-define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums", "src/constants/html", "src/helper", "src/TilemapEditor/state", "src/TilemapEditor/utils"], function (require, exports, enums_js_1, html_js_1, helper_js_1, state_js_1, utils_js_1) {
+define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums", "src/constants/html", "src/helper", "src/TilemapEditor/store", "src/TilemapEditor/utils"], function (require, exports, enums_js_1, html_js_1, helper_js_1, store_js_1, utils_js_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.restoreFromUndoStackData = exports.updateMaps = exports.reloadTilesets = exports.setActiveMap = exports.getTile = exports.updateLayers = exports.setLayer = exports.setCropSize = exports.reevaluateTilesetsData = exports.updateTilesetDataList = exports.getCurrentAnimation = exports.updateZoom = exports.addToUndoStack = exports.clearUndoStack = exports.updateMapSize = exports.getTilesAnalisis = exports.downloadAsTextFile = exports.selectMode = exports.updateTilesetGridContainer = exports.fillEmptyOrSameTiles = exports.addRandomTile = exports.addTile = exports.shouldNotAddAnimatedTile = exports.getSelectedFrameCount = exports.getCurrentFrames = exports.removeTile = exports.setMouseIsFalse = exports.setMouseIsTrue = exports.updateSelection = exports.setActiveTool = exports.getSelectedTile = exports.draw = exports.onUpdateState = exports.getAppState = exports.shouldHideSymbols = exports.getTileData = exports.getEmptyMap = void 0;
@@ -559,16 +555,16 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
         mapWidth,
         mapHeight,
         tileSize,
-        width: mapWidth * state_js_1.default.mul$SIZE_OF_CROP,
-        height: mapHeight * state_js_1.default.mul$SIZE_OF_CROP,
+        width: mapWidth * store_js_1._.mul$SIZE_OF_CROP,
+        height: mapHeight * store_js_1._.mul$SIZE_OF_CROP,
         gridColor,
     });
     exports.getEmptyMap = getEmptyMap;
     const getTileData = (x = NaN, y = NaN) => {
-        const tilesetTiles = state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value].tileData;
+        const tilesetTiles = store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value].tileData;
         let data;
         if (Number.isNaN(x) && Number.isNaN(y)) {
-            const { x: sx, y: sy } = state_js_1.default.mul$selection[0];
+            const { x: sx, y: sy } = store_js_1._.mul$selection[0];
             return tilesetTiles[`${sx}-${sy}`];
         }
         else {
@@ -577,24 +573,24 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
         return data;
     };
     exports.getTileData = getTileData;
-    const shouldHideSymbols = () => state_js_1.default.mul$SIZE_OF_CROP < 10 && state_js_1.default.mul$ZOOM < 2;
+    const shouldHideSymbols = () => store_js_1._.mul$SIZE_OF_CROP < 10 && store_js_1._.mul$ZOOM < 2;
     exports.shouldHideSymbols = shouldHideSymbols;
     const getAppState = () => {
         // TODO we need for tilesets to load - rapidly refreshing the browser may return empty tilesets object!
-        if (Object.keys(state_js_1.default.mul$tileSets).length === 0 &&
-            state_js_1.default.mul$tileSets.constructor === Object)
+        if (Object.keys(store_js_1._.mul$tileSets).length === 0 &&
+            store_js_1._.mul$tileSets.constructor === Object)
             return null;
         return {
-            tileMapData: { tileSets: state_js_1.default.mul$tileSets, maps: state_js_1.default.mul$maps },
+            tileMapData: { tileSets: store_js_1._.mul$tileSets, maps: store_js_1._.mul$maps },
             appState: {
-                undoStack: state_js_1.default.clearUndoStack$undoStack,
-                undoStepPosition: state_js_1.default.mul$undoStepPosition,
-                currentLayer: state_js_1.default.setLayer$currentLayer,
-                PREV_ACTIVE_TOOL: state_js_1.default.mul$PREV_ACTIVE_TOOL,
-                ACTIVE_TOOL: state_js_1.default.mul$ACTIVE_TOOL,
-                ACTIVE_MAP: state_js_1.default.mul$ACTIVE_MAP,
-                SHOW_GRID: state_js_1.default.init$SHOW_GRID,
-                selection: state_js_1.default.mul$selection,
+                undoStack: store_js_1._.clearUndoStack$undoStack,
+                undoStepPosition: store_js_1._.mul$undoStepPosition,
+                currentLayer: store_js_1._.setLayer$currentLayer,
+                PREV_ACTIVE_TOOL: store_js_1._.mul$PREV_ACTIVE_TOOL,
+                ACTIVE_TOOL: store_js_1._.mul$ACTIVE_TOOL,
+                ACTIVE_MAP: store_js_1._.mul$ACTIVE_MAP,
+                SHOW_GRID: store_js_1._.init$SHOW_GRID,
+                selection: store_js_1._.mul$selection,
             },
             //Todo tileSize and the others
             // undo stack is lost
@@ -602,22 +598,22 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     };
     exports.getAppState = getAppState;
     const onUpdateState = () => {
-        state_js_1.default.init$apiOnUpdateCallback((0, exports.getAppState)());
+        store_js_1._.init$apiOnUpdateCallback((0, exports.getAppState)());
     };
     exports.onUpdateState = onUpdateState;
     const draw = (shouldDrawGrid = true) => {
-        const ctx = state_js_1.default.init$canvas.getContext("2d");
-        ctx.clearRect(0, 0, state_js_1.default.mul$WIDTH, state_js_1.default.mul$HEIGHT);
-        ctx.canvas.width = state_js_1.default.mul$WIDTH;
-        ctx.canvas.height = state_js_1.default.mul$HEIGHT;
-        if (shouldDrawGrid && !state_js_1.default.init$SHOW_GRID)
-            (0, utils_js_1.drawGrid)(state_js_1.default.mul$WIDTH, state_js_1.default.mul$HEIGHT, ctx, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].gridColor);
+        const ctx = store_js_1._.init$canvas.getContext("2d");
+        ctx.clearRect(0, 0, store_js_1._.mul$WIDTH, store_js_1._.mul$HEIGHT);
+        ctx.canvas.width = store_js_1._.mul$WIDTH;
+        ctx.canvas.height = store_js_1._.mul$HEIGHT;
+        if (shouldDrawGrid && !store_js_1._.init$SHOW_GRID)
+            (0, utils_js_1.drawGrid)(store_js_1._.mul$WIDTH, store_js_1._.mul$HEIGHT, ctx, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].gridColor);
         const shouldHideHud = (0, exports.shouldHideSymbols)();
-        state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers.forEach((layer) => {
+        store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers.forEach((layer) => {
             if (!layer.visible)
                 return;
-            ctx.globalAlpha = layer.opacity;
-            if (state_js_1.default.mul$ZOOM !== 1) {
+            ctx.globalAlpha = layer.opacity ?? NaN;
+            if (store_js_1._.mul$ZOOM !== 1) {
                 ctx.webkitImageSmoothingEnabled = false;
                 ctx.mozImageSmoothingEnabled = false;
                 ctx.msImageSmoothingEnabled = false;
@@ -627,41 +623,41 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
             Object.keys(layer.tiles).forEach((key) => {
                 const [positionX, positionY] = key.split("-").map(Number);
                 const { x, y, tilesetIdx, isFlippedX } = layer.tiles[key];
-                const tileSize = state_js_1.default.mul$tileSets[tilesetIdx]?.tileSize || state_js_1.default.mul$SIZE_OF_CROP;
-                if (!(tilesetIdx in state_js_1.default.reloadTilesets$TILESET_ELEMENTS)) {
+                const tileSize = store_js_1._.mul$tileSets[tilesetIdx]?.tileSize || store_js_1._.mul$SIZE_OF_CROP;
+                if (!(tilesetIdx in store_js_1._.reloadTilesets$TILESET_ELEMENTS)) {
                     //texture not found
                     ctx.fillStyle = "red";
-                    ctx.fillRect(positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM);
+                    ctx.fillRect(positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM);
                     return;
                 }
                 if (isFlippedX) {
                     ctx.save(); //Special canvas crap to flip a slice, cause drawImage cant do it
                     ctx.translate(ctx.canvas.width, 0);
                     ctx.scale(-1, 1);
-                    ctx.drawImage(state_js_1.default.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize, y * tileSize, tileSize, tileSize, ctx.canvas.width -
-                        positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM -
-                        state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM);
+                    ctx.drawImage(store_js_1._.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize, y * tileSize, tileSize, tileSize, ctx.canvas.width -
+                        positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM -
+                        store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM);
                     ctx.restore();
                 }
                 else {
-                    ctx.drawImage(state_js_1.default.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize, y * tileSize, tileSize, tileSize, positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM);
+                    ctx.drawImage(store_js_1._.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize, y * tileSize, tileSize, tileSize, positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM);
                 }
             });
             // animated tiles
             Object.keys(layer.animatedTiles || {}).forEach((key) => {
                 const [positionX, positionY] = key.split("-").map(Number);
-                const { start, width, height, frameCount, isFlippedX } = layer.animatedTiles[key];
-                const { x, y, tilesetIdx } = start;
-                const tileSize = state_js_1.default.mul$tileSets[tilesetIdx]?.tileSize || state_js_1.default.mul$SIZE_OF_CROP;
-                if (!(tilesetIdx in state_js_1.default.reloadTilesets$TILESET_ELEMENTS)) {
+                const { start, width, height, frameCount, isFlippedX } = layer.animatedTiles?.[key] ?? {};
+                const { x, y, tilesetIdx } = start ?? {};
+                const tileSize = store_js_1._.mul$tileSets[tilesetIdx]?.tileSize || store_js_1._.mul$SIZE_OF_CROP;
+                if (!(tilesetIdx in store_js_1._.reloadTilesets$TILESET_ELEMENTS)) {
                     //texture not found
                     ctx.fillStyle = "yellow";
-                    ctx.fillRect(positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * width, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * height);
+                    ctx.fillRect(positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * width, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * height);
                     ctx.fillStyle = "blue";
-                    ctx.fillText("X", positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM + 5, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM + 10);
+                    ctx.fillText("X", positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM + 5, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM + 10);
                     return;
                 }
-                const frameIndex = state_js_1.default.init$tileDataSel.value === "frames" || frameCount === 1
+                const frameIndex = store_js_1._.init$tileDataSel.value === "frames" || frameCount === 1
                     ? Math.round(Date.now() / 120) % frameCount
                     : 1; //30fps
                 if (isFlippedX) {
@@ -669,24 +665,24 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                     ctx.translate(ctx.canvas.width, 0);
                     ctx.scale(-1, 1);
                     const positionXFlipped = ctx.canvas.width -
-                        positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM -
-                        state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM;
+                        positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM -
+                        store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM;
                     if (shouldDrawGrid && !shouldHideHud) {
                         ctx.beginPath();
                         ctx.lineWidth = 1;
                         ctx.strokeStyle = "rgba(250,240,255, 0.7)";
-                        ctx.rect(positionXFlipped, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * width, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * height);
+                        ctx.rect(positionXFlipped, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * width, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * height);
                         ctx.stroke();
                     }
-                    ctx.drawImage(state_js_1.default.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize + frameIndex * tileSize * width, y * tileSize, tileSize * width, // src width
+                    ctx.drawImage(store_js_1._.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize + frameIndex * tileSize * width, y * tileSize, tileSize * width, // src width
                     tileSize * height, // src height
-                    positionXFlipped, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, //target y
-                    state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * width, // target width
-                    state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * height // target height
+                    positionXFlipped, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, //target y
+                    store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * width, // target width
+                    store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * height // target height
                     );
                     if (shouldDrawGrid && !shouldHideHud) {
                         ctx.fillStyle = "white";
-                        ctx.fillText("🔛", positionXFlipped + 5, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM + 10);
+                        ctx.fillText("🔛", positionXFlipped + 5, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM + 10);
                     }
                     ctx.restore();
                 }
@@ -695,40 +691,40 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                         ctx.beginPath();
                         ctx.lineWidth = 1;
                         ctx.strokeStyle = "rgba(250,240,255, 0.7)";
-                        ctx.rect(positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * width, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * height);
+                        ctx.rect(positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * width, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * height);
                         ctx.stroke();
                     }
-                    ctx.drawImage(state_js_1.default.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize + frameIndex * tileSize * width, //src x
+                    ctx.drawImage(store_js_1._.reloadTilesets$TILESET_ELEMENTS[tilesetIdx], x * tileSize + frameIndex * tileSize * width, //src x
                     y * tileSize, //src y
                     tileSize * width, // src width
                     tileSize * height, // src height
-                    positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, //target x
-                    positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, //target y
-                    state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * width, // target width
-                    state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * height // target height
+                    positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, //target x
+                    positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, //target y
+                    store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * width, // target width
+                    store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * height // target height
                     );
                     if (shouldDrawGrid && !shouldHideHud) {
                         ctx.fillStyle = "white";
-                        ctx.fillText("⭕", positionX * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM + 5, positionY * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM + 10);
+                        ctx.fillText("⭕", positionX * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM + 5, positionY * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM + 10);
                     }
                 }
             });
         });
-        if (state_js_1.default.init$SHOW_GRID)
-            (0, utils_js_1.drawGrid)(state_js_1.default.mul$WIDTH, state_js_1.default.mul$HEIGHT, ctx, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].gridColor);
+        if (store_js_1._.init$SHOW_GRID)
+            (0, utils_js_1.drawGrid)(store_js_1._.mul$WIDTH, store_js_1._.mul$HEIGHT, ctx, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].gridColor);
         (0, exports.onUpdateState)();
     };
     exports.draw = draw;
     const getSelectedTile = (event) => {
-        const { x, y } = event.target.getBoundingClientRect();
-        const tileSize = state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value].tileSize * state_js_1.default.mul$ZOOM;
+        const { x, y } = (0, helper_js_1.target)(event).getBoundingClientRect();
+        const tileSize = store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value].tileSize * store_js_1._.mul$ZOOM;
         const tx = Math.floor(Math.max(event.clientX - x, 0) / tileSize);
         const ty = Math.floor(Math.max(event.clientY - y, 0) / tileSize);
         // add start tile, add end tile, add all tiles inbetween
         const newSelection = [];
-        if (state_js_1.default.init$tileSelectStart !== null) {
-            for (let ix = state_js_1.default.init$tileSelectStart.x; ix < tx + 1; ix++) {
-                for (let iy = state_js_1.default.init$tileSelectStart.y; iy < ty + 1; iy++) {
+        if (store_js_1._.init$tileSelectStart !== null) {
+            for (let ix = store_js_1._.init$tileSelectStart.x; ix < tx + 1; ix++) {
+                for (let iy = store_js_1._.init$tileSelectStart.y; iy < ty + 1; iy++) {
                     const data = (0, exports.getTileData)(ix, iy);
                     newSelection.push({ ...data, x: ix, y: iy });
                 }
@@ -743,99 +739,100 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     const setActiveTool = (toolIdx) => {
         const toolButtonsWrapper = document.getElementById("toolButtonsWrapper");
         const canvas_wrapper = document.getElementById("canvas_wrapper");
-        state_js_1.default.mul$ACTIVE_TOOL = toolIdx;
+        store_js_1._.mul$ACTIVE_TOOL = toolIdx;
         const actTool = toolButtonsWrapper.querySelector(`input[id="tool${toolIdx}"]`);
         if (actTool)
             actTool.checked = true;
-        canvas_wrapper.setAttribute("isDraggable", `${state_js_1.default.mul$ACTIVE_TOOL === enums_js_1.TOOLS.PAN}`);
+        canvas_wrapper.setAttribute("isDraggable", `${store_js_1._.mul$ACTIVE_TOOL === enums_js_1.TOOLS.PAN}`);
         (0, exports.draw)();
     };
     exports.setActiveTool = setActiveTool;
     const updateSelection = (autoSelectTool = true) => {
-        const tilesetDataSel = state_js_1.default.init$tilesetDataSel;
-        const tilesetSelection = state_js_1.default.init$tilesetSelection;
-        if (!state_js_1.default.mul$tileSets[tilesetDataSel.value])
+        const tilesetDataSel = store_js_1._.init$tilesetDataSel;
+        const tilesetSelection = store_js_1._.init$tilesetSelection;
+        if (!store_js_1._.mul$tileSets[tilesetDataSel.value])
             return;
-        const selected = state_js_1.default.mul$selection[0];
+        const selected = store_js_1._.mul$selection[0];
         if (!selected)
             return;
         const { x, y } = selected;
-        const { x: endX, y: endY } = state_js_1.default.mul$selection[state_js_1.default.mul$selection.length - 1];
+        const { x: endX, y: endY } = store_js_1._.mul$selection[store_js_1._.mul$selection.length - 1];
         const selWidth = endX - x + 1;
         const selHeight = endY - y + 1;
-        state_js_1.default.updateSelection$selectionSize = [selWidth, selHeight];
-        console.log(state_js_1.default.mul$tileSets[tilesetDataSel.value].tileSize);
-        const tileSize = state_js_1.default.mul$tileSets[tilesetDataSel.value].tileSize;
-        tilesetSelection.style.left = `${x * tileSize * state_js_1.default.mul$ZOOM}px`;
-        tilesetSelection.style.top = `${y * tileSize * state_js_1.default.mul$ZOOM}px`;
-        tilesetSelection.style.width = `${selWidth * tileSize * state_js_1.default.mul$ZOOM}px`;
-        tilesetSelection.style.height = `${selHeight * tileSize * state_js_1.default.mul$ZOOM}px`;
+        store_js_1._.updateSelection$selectionSize = [selWidth, selHeight];
+        console.log(store_js_1._.mul$tileSets[tilesetDataSel.value].tileSize);
+        const tileSize = store_js_1._.mul$tileSets[tilesetDataSel.value].tileSize;
+        tilesetSelection.style.left = `${x * tileSize * store_js_1._.mul$ZOOM}px`;
+        tilesetSelection.style.top = `${y * tileSize * store_js_1._.mul$ZOOM}px`;
+        tilesetSelection.style.width = `${selWidth * tileSize * store_js_1._.mul$ZOOM}px`;
+        tilesetSelection.style.height = `${selHeight * tileSize * store_js_1._.mul$ZOOM}px`;
         // Autoselect tool upon selecting a tile
         if (autoSelectTool &&
-            ![enums_js_1.TOOLS.BRUSH, enums_js_1.TOOLS.RAND, enums_js_1.TOOLS.FILL].includes(state_js_1.default.mul$ACTIVE_TOOL))
+            ![enums_js_1.TOOLS.BRUSH, enums_js_1.TOOLS.RAND, enums_js_1.TOOLS.FILL].includes(store_js_1._.mul$ACTIVE_TOOL))
             (0, exports.setActiveTool)(enums_js_1.TOOLS.BRUSH);
         // show/hide param editor
-        if (state_js_1.default.init$tileDataSel.value === "frames" && state_js_1.default.getTile$editedEntity)
-            state_js_1.default.init$objectParametersEditor.classList.add("entity");
+        if (store_js_1._.init$tileDataSel.value === "frames" && store_js_1._.getTile$editedEntity)
+            store_js_1._.init$objectParametersEditor.classList.add("entity");
         else
-            state_js_1.default.init$objectParametersEditor.classList.remove("entity");
+            store_js_1._.init$objectParametersEditor.classList.remove("entity");
         (0, exports.onUpdateState)();
     };
     exports.updateSelection = updateSelection;
     const setMouseIsTrue = (e) => {
         if (e.button === 0) {
-            state_js_1.default.mul$isMouseDown = true;
+            store_js_1._.mul$isMouseDown = true;
         }
         else if (e.button === 1) {
-            state_js_1.default.mul$PREV_ACTIVE_TOOL = state_js_1.default.mul$ACTIVE_TOOL;
+            store_js_1._.mul$PREV_ACTIVE_TOOL = store_js_1._.mul$ACTIVE_TOOL;
             (0, exports.setActiveTool)(enums_js_1.TOOLS.PAN);
         }
     };
     exports.setMouseIsTrue = setMouseIsTrue;
     const setMouseIsFalse = (e) => {
         if (e.button === 0) {
-            state_js_1.default.mul$isMouseDown = false;
+            store_js_1._.mul$isMouseDown = false;
         }
-        else if (e.button === 1 && state_js_1.default.mul$ACTIVE_TOOL === enums_js_1.TOOLS.PAN) {
-            (0, exports.setActiveTool)(state_js_1.default.mul$PREV_ACTIVE_TOOL);
+        else if (e.button === 1 && store_js_1._.mul$ACTIVE_TOOL === enums_js_1.TOOLS.PAN) {
+            (0, exports.setActiveTool)(store_js_1._.mul$PREV_ACTIVE_TOOL);
         }
     };
     exports.setMouseIsFalse = setMouseIsFalse;
     const removeTile = (key) => {
-        delete state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[key];
+        delete store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[key];
         if (key in
-            (state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer]
+            (store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer]
                 .animatedTiles || {}))
-            delete state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer]
+            delete store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer]
                 .animatedTiles[key];
     };
     exports.removeTile = removeTile;
     const addSelectedTiles = (key, tiles) => {
         const [x, y] = key.split("-");
-        const tilesPatch = tiles || state_js_1.default.mul$selection; // tiles is opt override for selection for fancy things like random patch of tiles
+        const tilesPatch = tiles || store_js_1._.mul$selection; // tiles is opt override for selection for fancy things like random patch of tiles
         const { x: startX, y: startY } = tilesPatch[0]; // add selection override
-        const selWidth = state_js_1.default.updateSelection$selectionSize[0];
-        const selHeight = state_js_1.default.updateSelection$selectionSize[1];
-        state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[key] =
+        const selWidth = store_js_1._.updateSelection$selectionSize[0];
+        const selHeight = store_js_1._.updateSelection$selectionSize[1];
+        store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[key] =
             tilesPatch[0];
         for (let ix = 0; ix < selWidth; ix++) {
             for (let iy = 0; iy < selHeight; iy++) {
                 const isFlippedX = document.getElementById("toggleFlipX").checked;
                 const tileX = isFlippedX ? Number(x) - ix : Number(x) + ix; //placed in reverse when flipped on x
                 const coordKey = `${tileX}-${Number(y) + iy}`;
-                state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[coordKey] = {
+                store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[coordKey] = {
                     ...tilesPatch.find((tile) => tile.x === startX + ix && tile.y === startY + iy),
                     isFlippedX,
                 };
             }
         }
     };
-    const getCurrentFrames = () => state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value]?.frames[state_js_1.default.init$tileFrameSel.value];
+    const getCurrentFrames = () => store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value]?.frames[store_js_1._.init$tileFrameSel.value];
     exports.getCurrentFrames = getCurrentFrames;
     const getSelectedFrameCount = () => (0, exports.getCurrentFrames)()?.frameCount || 1;
     exports.getSelectedFrameCount = getSelectedFrameCount;
-    const shouldNotAddAnimatedTile = () => (state_js_1.default.init$tileDataSel.value !== "frames" && (0, exports.getSelectedFrameCount)() !== 1) ||
-        Object.keys(state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value]?.frames).length === 0;
+    const shouldNotAddAnimatedTile = () => (store_js_1._.init$tileDataSel.value !== "frames" && (0, exports.getSelectedFrameCount)() !== 1) ||
+        Object.keys(store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value]?.frames).length ===
+            0;
     exports.shouldNotAddAnimatedTile = shouldNotAddAnimatedTile;
     const addTile = (key) => {
         if ((0, exports.shouldNotAddAnimatedTile)()) {
@@ -843,17 +840,19 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
         }
         else {
             // if animated tile mode and has more than one frames, add/remove to animatedTiles
-            if (!state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer]
+            if (!store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer]
                 .animatedTiles)
-                state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].animatedTiles = {};
+                store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].animatedTiles = {};
             const [x, y] = key.split("-");
-            state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].animatedTiles[key] = {
+            const animatedTiles = store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer]
+                .animatedTiles;
+            animatedTiles[key] = {
                 ...(0, exports.getCurrentFrames)(),
                 isFlippedX: document.getElementById("toggleFlipX")
                     .checked,
-                layer: state_js_1.default.setLayer$currentLayer,
-                xPos: Number(x) * state_js_1.default.mul$SIZE_OF_CROP,
-                yPos: Number(y) * state_js_1.default.mul$SIZE_OF_CROP,
+                layer: store_js_1._.setLayer$currentLayer,
+                xPos: Number(x) * store_js_1._.mul$SIZE_OF_CROP,
+                yPos: Number(y) * store_js_1._.mul$SIZE_OF_CROP,
             };
         }
     };
@@ -861,12 +860,12 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     const addRandomTile = (key) => {
         // TODO add probability for empty
         if ((0, exports.shouldNotAddAnimatedTile)()) {
-            state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[key] =
-                state_js_1.default.mul$selection[Math.floor(Math.random() * state_js_1.default.mul$selection.length)];
+            store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[key] =
+                store_js_1._.mul$selection[Math.floor(Math.random() * store_js_1._.mul$selection.length)];
         }
         else {
             // do the same, but add random from frames instead
-            const tilesetTiles = state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value].tileData;
+            const tilesetTiles = store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value].tileData;
             const { frameCount, tiles, width } = (0, exports.getCurrentFrames)();
             const randOffset = Math.floor(Math.random() * frameCount);
             const randXOffsetTiles = tiles.map((tile) => tilesetTiles[`${tile.x + randOffset * width}-${tile.y}`]);
@@ -875,41 +874,41 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     };
     exports.addRandomTile = addRandomTile;
     const fillEmptyOrSameTiles = (key) => {
-        const pickedTile = state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[key];
-        const [w, h] = [state_js_1.default.mul$mapTileWidth, state_js_1.default.mul$mapTileHeight];
+        const pickedTile = store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[key];
+        const [w, h] = [store_js_1._.mul$mapTileWidth, store_js_1._.mul$mapTileHeight];
         Array.from({ length: w * h }, (x, i) => i).map((tile) => {
             const x = tile % w;
             const y = Math.floor(tile / w);
             const coordKey = `${x}-${y}`;
-            const filledTile = state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[coordKey];
+            const filledTile = store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[coordKey];
             if (pickedTile &&
                 filledTile &&
                 filledTile.x === pickedTile.x &&
                 filledTile.y === pickedTile.y) {
-                state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[coordKey] = state_js_1.default.mul$selection[0]; // Replace all clicked on tiles with selected
+                store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[coordKey] = store_js_1._.mul$selection[0]; // Replace all clicked on tiles with selected
             }
             else if (!pickedTile &&
                 !(coordKey in
-                    state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles)) {
-                state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].tiles[coordKey] = state_js_1.default.mul$selection[0]; // when clicked on empty, replace all empty with selection
+                    store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles)) {
+                store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].tiles[coordKey] = store_js_1._.mul$selection[0]; // when clicked on empty, replace all empty with selection
             }
         });
     };
     exports.fillEmptyOrSameTiles = fillEmptyOrSameTiles;
     const updateTilesetGridContainer = () => {
-        const viewMode = state_js_1.default.init$tileDataSel.value;
-        const tilesetData = state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value];
+        const viewMode = store_js_1._.init$tileDataSel.value;
+        const tilesetData = store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value];
         if (!tilesetData)
             return;
         const { tileCount, gridWidth, tileData, tags } = tilesetData;
         // console.log("COUNT", tileCount)
-        const hideSymbols = !state_js_1.default.toggleSymbolsVisible$DISPLAY_SYMBOLS || (0, exports.shouldHideSymbols)();
+        const hideSymbols = !store_js_1._.toggleSymbolsVisible$DISPLAY_SYMBOLS || (0, exports.shouldHideSymbols)();
         const canvas = document.getElementById("tilesetCanvas");
-        const img = state_js_1.default.reloadTilesets$TILESET_ELEMENTS[state_js_1.default.init$tilesetDataSel.value];
-        canvas.width = img.width * state_js_1.default.mul$ZOOM;
-        canvas.height = img.height * state_js_1.default.mul$ZOOM;
+        const img = store_js_1._.reloadTilesets$TILESET_ELEMENTS[+store_js_1._.init$tilesetDataSel.value];
+        canvas.width = img.width * store_js_1._.mul$ZOOM;
+        canvas.height = img.height * store_js_1._.mul$ZOOM;
         const ctx = canvas.getContext("2d");
-        if (state_js_1.default.mul$ZOOM !== 1) {
+        if (store_js_1._.mul$ZOOM !== 1) {
             ctx.webkitImageSmoothingEnabled = false;
             ctx.mozImageSmoothingEnabled = false;
             ctx.msImageSmoothingEnabled = false;
@@ -917,18 +916,18 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
         }
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         // console.log("WIDTH EXCEEDS?", canvas.width % SIZE_OF_CROP)
-        const tileSizeSeemsIncorrect = canvas.width % state_js_1.default.mul$SIZE_OF_CROP !== 0;
-        (0, utils_js_1.drawGrid)(ctx.canvas.width, ctx.canvas.height, ctx, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM, tileSizeSeemsIncorrect ? "red" : "cyan");
+        const tileSizeSeemsIncorrect = canvas.width % store_js_1._.mul$SIZE_OF_CROP !== 0;
+        (0, utils_js_1.drawGrid)(ctx.canvas.width, ctx.canvas.height, ctx, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM, tileSizeSeemsIncorrect ? "red" : "cyan");
         Array.from({ length: tileCount }, (x, i) => i).map((tile) => {
             if (viewMode === "frames") {
                 const frameData = (0, exports.getCurrentFrames)();
                 if (!frameData || Object.keys(frameData).length === 0)
                     return;
                 const { width, height, start, tiles, frameCount } = frameData;
-                state_js_1.default.mul$selection = [...tiles];
+                store_js_1._.mul$selection = [...tiles];
                 ctx.lineWidth = 0.5;
                 ctx.strokeStyle = "red";
-                ctx.strokeRect(state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * (start.x + width), state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * start.y, state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * (width * (frameCount - 1)), state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM * height);
+                ctx.strokeRect(store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * (start.x + width), store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * start.y, store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * (width * (frameCount - 1)), store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM * height);
             }
             else if (!hideSymbols) {
                 const x = tile % gridWidth;
@@ -944,20 +943,20 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                 ctx.shadowColor = "black";
                 ctx.shadowBlur = 4;
                 ctx.lineWidth = 2;
-                const posX = x * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM +
-                    (state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM) / 3;
-                const posY = y * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM +
-                    (state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM) / 2;
-                ctx.fillText(innerTile, posX, posY);
+                const posX = x * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM +
+                    (store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM) / 3;
+                const posY = y * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM +
+                    (store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM) / 2;
+                ctx.fillText(`${innerTile}`, posX, posY);
             }
         });
     };
     exports.updateTilesetGridContainer = updateTilesetGridContainer;
     const selectMode = (mode = "") => {
         if (mode !== "")
-            state_js_1.default.init$tileDataSel.value = mode;
+            store_js_1._.init$tileDataSel.value = mode;
         document.getElementById("tileFrameSelContainer").style.display =
-            state_js_1.default.init$tileDataSel.value === "frames" ? "flex" : "none";
+            store_js_1._.init$tileDataSel.value === "frames" ? "flex" : "none";
         // tilesetContainer.style.top = tileDataSel.value === "frames" ? "45px" : "0";
         (0, exports.updateTilesetGridContainer)();
     };
@@ -1000,99 +999,98 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     exports.getTilesAnalisis = getTilesAnalisis;
     const updateMapSize = (size) => {
         if (size?.mapWidth && size?.mapWidth > 1) {
-            state_js_1.default.mul$mapTileWidth = size?.mapWidth;
-            state_js_1.default.mul$WIDTH = state_js_1.default.mul$mapTileWidth * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM;
-            state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].mapWidth = state_js_1.default.mul$mapTileWidth;
-            document.querySelector(".canvas_resizer[resizerdir='x']").style.left = `${state_js_1.default.mul$WIDTH}px`;
-            document.querySelector(".canvas_resizer[resizerdir='x'] input").value = String(state_js_1.default.mul$mapTileWidth);
+            store_js_1._.mul$mapTileWidth = size?.mapWidth;
+            store_js_1._.mul$WIDTH = store_js_1._.mul$mapTileWidth * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM;
+            store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].mapWidth = store_js_1._.mul$mapTileWidth;
+            document.querySelector(".canvas_resizer[resizerdir='x']").style.left = `${store_js_1._.mul$WIDTH}px`;
+            document.querySelector(".canvas_resizer[resizerdir='x'] input").value = String(store_js_1._.mul$mapTileWidth);
             document.getElementById("canvasWidthInp").value =
-                String(state_js_1.default.mul$mapTileWidth);
+                String(store_js_1._.mul$mapTileWidth);
         }
         if (size?.mapHeight && size?.mapHeight > 1) {
-            state_js_1.default.mul$mapTileHeight = size?.mapHeight;
-            state_js_1.default.mul$HEIGHT = state_js_1.default.mul$mapTileHeight * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM;
-            state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].mapHeight = state_js_1.default.mul$mapTileHeight;
-            document.querySelector(".canvas_resizer[resizerdir='y']").style.top = `${state_js_1.default.mul$HEIGHT}px`;
-            document.querySelector(".canvas_resizer[resizerdir='y'] input").value = String(state_js_1.default.mul$mapTileHeight);
+            store_js_1._.mul$mapTileHeight = size?.mapHeight;
+            store_js_1._.mul$HEIGHT = store_js_1._.mul$mapTileHeight * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM;
+            store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].mapHeight = store_js_1._.mul$mapTileHeight;
+            document.querySelector(".canvas_resizer[resizerdir='y']").style.top = `${store_js_1._.mul$HEIGHT}px`;
+            document.querySelector(".canvas_resizer[resizerdir='y'] input").value = String(store_js_1._.mul$mapTileHeight);
             document.getElementById("canvasHeightInp").value =
-                String(state_js_1.default.mul$mapTileHeight);
+                String(store_js_1._.mul$mapTileHeight);
         }
         (0, exports.draw)();
     };
     exports.updateMapSize = updateMapSize;
     const clearUndoStack = () => {
-        state_js_1.default.clearUndoStack$undoStack = [];
-        state_js_1.default.mul$undoStepPosition = -1;
+        store_js_1._.clearUndoStack$undoStack = [];
+        store_js_1._.mul$undoStepPosition = -1;
     };
     exports.clearUndoStack = clearUndoStack;
     const addToUndoStack = () => {
-        if (Object.keys(state_js_1.default.mul$tileSets).length === 0 ||
-            Object.keys(state_js_1.default.mul$maps).length === 0)
+        if (Object.keys(store_js_1._.mul$tileSets).length === 0 ||
+            Object.keys(store_js_1._.mul$maps).length === 0)
             return;
-        const oldState = state_js_1.default.clearUndoStack$undoStack.length > 0
+        const oldState = store_js_1._.clearUndoStack$undoStack.length > 0
             ? JSON.stringify({
-                maps: state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].maps,
-                tileSets: state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].tileSets,
-                currentLayer: state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].currentLayer,
-                ACTIVE_MAP: state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].ACTIVE_MAP,
-                IMAGES: state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].IMAGES,
+                maps: store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].maps,
+                tileSets: store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].tileSets,
+                currentLayer: store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].currentLayer,
+                ACTIVE_MAP: store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].ACTIVE_MAP,
+                IMAGES: store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].IMAGES,
             })
             : undefined;
         const newState = JSON.stringify({
-            maps: state_js_1.default.mul$maps,
-            tileSets: state_js_1.default.mul$tileSets,
-            currentLayer: state_js_1.default.setLayer$currentLayer,
-            ACTIVE_MAP: state_js_1.default.mul$ACTIVE_MAP,
-            IMAGES: state_js_1.default.mul$IMAGES,
+            maps: store_js_1._.mul$maps,
+            tileSets: store_js_1._.mul$tileSets,
+            currentLayer: store_js_1._.setLayer$currentLayer,
+            ACTIVE_MAP: store_js_1._.mul$ACTIVE_MAP,
+            IMAGES: store_js_1._.mul$IMAGES,
         });
         if (newState === oldState)
             return; // prevent updating when no changes are present in the data!
-        state_js_1.default.mul$undoStepPosition += 1;
-        state_js_1.default.clearUndoStack$undoStack.length = state_js_1.default.mul$undoStepPosition;
-        state_js_1.default.clearUndoStack$undoStack.push(JSON.parse(JSON.stringify({
-            maps: state_js_1.default.mul$maps,
-            tileSets: state_js_1.default.mul$tileSets,
-            currentLayer: state_js_1.default.setLayer$currentLayer,
-            ACTIVE_MAP: state_js_1.default.mul$ACTIVE_MAP,
-            IMAGES: state_js_1.default.mul$IMAGES,
-            undoStepPosition: state_js_1.default.mul$undoStepPosition,
+        store_js_1._.mul$undoStepPosition += 1;
+        store_js_1._.clearUndoStack$undoStack.length = store_js_1._.mul$undoStepPosition;
+        store_js_1._.clearUndoStack$undoStack.push(JSON.parse(JSON.stringify({
+            maps: store_js_1._.mul$maps,
+            tileSets: store_js_1._.mul$tileSets,
+            currentLayer: store_js_1._.setLayer$currentLayer,
+            ACTIVE_MAP: store_js_1._.mul$ACTIVE_MAP,
+            IMAGES: store_js_1._.mul$IMAGES,
+            undoStepPosition: store_js_1._.mul$undoStepPosition,
         })));
         // console.log("undo stack updated", undoStack, undoStepPosition)
     };
     exports.addToUndoStack = addToUndoStack;
     const updateZoom = () => {
         const [tilesetImage, tilesetContainer] = [
-            state_js_1.default.init$tilesetImage,
-            state_js_1.default.init$tilesetContainer,
+            store_js_1._.init$tilesetImage,
+            store_js_1._.init$tilesetContainer,
         ];
         // tilesetImage.style = `transform: scale(${_.mul$ZOOM});transform-origin: left top;image-rendering: auto;image-rendering: crisp-edges;image-rendering: pixelated;`;
-        tilesetImage.setAttribute("style", `transform: scale(${state_js_1.default.mul$ZOOM});transform-origin: left top;image-rendering: auto;image-rendering: crisp-edges;image-rendering: pixelated;`);
-        tilesetContainer.style.width = `${tilesetImage.width * state_js_1.default.mul$ZOOM}px`;
-        tilesetContainer.style.height = `${tilesetImage.height * state_js_1.default.mul$ZOOM}px`;
-        document.getElementById("zoomLabel").innerText = `${state_js_1.default.mul$ZOOM}x`;
+        tilesetImage.setAttribute("style", `transform: scale(${store_js_1._.mul$ZOOM});transform-origin: left top;image-rendering: auto;image-rendering: crisp-edges;image-rendering: pixelated;`);
+        tilesetContainer.style.width = `${tilesetImage.width * store_js_1._.mul$ZOOM}px`;
+        tilesetContainer.style.height = `${tilesetImage.height * store_js_1._.mul$ZOOM}px`;
+        document.getElementById("zoomLabel").innerText = `${store_js_1._.mul$ZOOM}x`;
         (0, exports.updateTilesetGridContainer)();
         (0, exports.updateSelection)(false);
         (0, exports.updateMapSize)({
-            mapWidth: state_js_1.default.mul$mapTileWidth,
-            mapHeight: state_js_1.default.mul$mapTileHeight,
+            mapWidth: store_js_1._.mul$mapTileWidth,
+            mapHeight: store_js_1._.mul$mapTileHeight,
         });
-        state_js_1.default.mul$WIDTH = state_js_1.default.mul$mapTileWidth * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM; // needed when setting zoom?
-        state_js_1.default.mul$HEIGHT = state_js_1.default.mul$mapTileHeight * state_js_1.default.mul$SIZE_OF_CROP * state_js_1.default.mul$ZOOM;
-        state_js_1.default.mul$zoomIndex =
-            enums_js_1.ZOOM_LEVELS.indexOf(state_js_1.default.mul$ZOOM) === -1
+        store_js_1._.mul$WIDTH = store_js_1._.mul$mapTileWidth * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM; // needed when setting zoom?
+        store_js_1._.mul$HEIGHT = store_js_1._.mul$mapTileHeight * store_js_1._.mul$SIZE_OF_CROP * store_js_1._.mul$ZOOM;
+        store_js_1._.mul$zoomIndex =
+            enums_js_1.ZOOM_LEVELS.indexOf(store_js_1._.mul$ZOOM) === -1
                 ? 0
-                : enums_js_1.ZOOM_LEVELS.indexOf(state_js_1.default.mul$ZOOM);
+                : enums_js_1.ZOOM_LEVELS.indexOf(store_js_1._.mul$ZOOM);
     };
     exports.updateZoom = updateZoom;
-    const getCurrentAnimation = (getAnim) => state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value]?.frames[state_js_1.default.init$tileFrameSel.value]
-        ?.animations?.[getAnim || state_js_1.default.init$tileAnimSel.value];
+    const getCurrentAnimation = (getAnim) => store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value]?.frames[store_js_1._.init$tileFrameSel.value]?.animations?.[getAnim || store_js_1._.init$tileAnimSel.value];
     exports.getCurrentAnimation = getCurrentAnimation;
     const updateTilesetDataList = (populateFrames = false) => {
         const populateWithOptions = (selectEl, options, newContent) => {
             if (!options)
                 return;
             const value = selectEl.value + "";
-            selectEl.innerHTML = newContent;
+            selectEl.innerHTML = newContent ?? "";
             Object.keys(options).forEach((opt) => {
                 const newOption = document.createElement("option");
                 newOption.innerText = opt;
@@ -1103,47 +1101,40 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                 (["", "frames", "animations"].includes(value) && !populateFrames))
                 selectEl.value = value;
         };
-        const tilesetDataSel = state_js_1.default.init$tilesetDataSel;
+        const tilesetDataSel = store_js_1._.init$tilesetDataSel;
         if (!populateFrames)
-            populateWithOptions(state_js_1.default.init$tileDataSel, state_js_1.default.mul$tileSets[tilesetDataSel.value]?.tags, `<option value="">Symbols (${state_js_1.default.mul$tileSets[tilesetDataSel.value]?.tileCount || "?"})</option><option value="frames">Objects</option>`);
+            populateWithOptions(store_js_1._.init$tileDataSel, store_js_1._.mul$tileSets[tilesetDataSel.value]?.tags, `<option value="">Symbols (${store_js_1._.mul$tileSets[tilesetDataSel.value]?.tileCount || "?"})</option><option value="frames">Objects</option>`);
         else {
-            populateWithOptions(state_js_1.default.init$tileFrameSel, state_js_1.default.mul$tileSets[tilesetDataSel.value]?.frames, "");
-            populateWithOptions(state_js_1.default.init$tileAnimSel, state_js_1.default.mul$tileSets[tilesetDataSel.value]?.frames[state_js_1.default.init$tileFrameSel.value]
+            populateWithOptions(store_js_1._.init$tileFrameSel, store_js_1._.mul$tileSets[tilesetDataSel.value]?.frames, "");
+            populateWithOptions(store_js_1._.init$tileAnimSel, store_js_1._.mul$tileSets[tilesetDataSel.value]?.frames[store_js_1._.init$tileFrameSel.value]
                 ?.animations, "");
         }
-        document.getElementById("tileFrameCount").value =
-            (0, exports.getCurrentFrames)()?.frameCount || 1;
+        document.getElementById("tileFrameCount").value = `${(0, exports.getCurrentFrames)()?.frameCount || 1}`;
         const currentAnim = (0, exports.getCurrentAnimation)();
-        // FIXME: ???
-        //@ts-ignore
-        state_js_1.default.state$el.animStart().max = state_js_1.default.state$el.tileFrameCount().value;
-        //@ts-ignore
-        state_js_1.default.state$el.animEnd().max = state_js_1.default.state$el.tileFrameCount().value;
+        store_js_1._.state$el.animStart().max = store_js_1._.state$el.tileFrameCount().value;
+        store_js_1._.state$el.animEnd().max = store_js_1._.state$el.tileFrameCount().value;
         if (currentAnim) {
             console.log({ currentAnim });
-            //@ts-ignore
-            state_js_1.default.state$el.animStart().value = currentAnim.start || 1;
-            //@ts-ignore
-            state_js_1.default.state$el.animEnd().value = currentAnim.end || 1;
-            //@ts-ignore
-            state_js_1.default.state$el.animLoop().checked = currentAnim.loop || false;
-            //@ts-ignore
-            state_js_1.default.state$el.animSpeed().value = currentAnim.speed || 1;
+            store_js_1._.state$el.animStart().value = `${currentAnim.start || 1}`;
+            store_js_1._.state$el.animEnd().value = `${currentAnim.end || 1}`;
+            store_js_1._.state$el.animLoop().checked = currentAnim.loop || false;
+            store_js_1._.state$el.animSpeed().value = `${currentAnim.speed || 1}`;
         }
     };
     exports.updateTilesetDataList = updateTilesetDataList;
     const reevaluateTilesetsData = () => {
         let symbolStartIdx = 0;
-        Object.entries(state_js_1.default.mul$tileSets).forEach(([key, old]) => {
+        Object.entries(store_js_1._.mul$tileSets).forEach(([key, old]) => {
             const tileData = {};
             // console.log("OLD DATA",old)
-            const tileSize = old.tileSize || state_js_1.default.mul$SIZE_OF_CROP;
+            const tileSize = old.tileSize || store_js_1._.mul$SIZE_OF_CROP;
             const gridWidth = Math.ceil(old.width / tileSize);
             const gridHeight = Math.ceil(old.height / tileSize);
             const tileCount = gridWidth * gridHeight;
             Array.from({ length: tileCount }, (x, i) => i).map((tile) => {
                 const x = tile % gridWidth;
                 const y = Math.floor(tile / gridWidth);
+                //@ts-expect-error FIXME: type error
                 const oldTileData = old?.[`${x}-${y}`]?.tileData;
                 const tileSymbol = enums_js_1.RANDOM_LETTERS[Math.floor(symbolStartIdx + tile)];
                 tileData[`${x}-${y}`] = {
@@ -1153,7 +1144,7 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                     tilesetIdx: key,
                     tileSymbol,
                 };
-                state_js_1.default.mul$tileSets[key] = {
+                store_js_1._.mul$tileSets[key] = {
                     ...old,
                     tileSize,
                     gridWidth,
@@ -1172,16 +1163,16 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     };
     exports.reevaluateTilesetsData = reevaluateTilesetsData;
     const setCropSize = (newSize) => {
-        if (newSize === state_js_1.default.mul$SIZE_OF_CROP && state_js_1.default.init$cropSize.value === newSize)
+        if (newSize === store_js_1._.mul$SIZE_OF_CROP && store_js_1._.init$cropSize.value === `${newSize}`)
             return;
-        state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value].tileSize = newSize;
-        state_js_1.default.mul$IMAGES.forEach((ts, idx) => {
-            if (ts.src === state_js_1.default.init$tilesetImage.src)
-                state_js_1.default.mul$IMAGES[idx].tileSize = newSize;
+        store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value].tileSize = newSize;
+        store_js_1._.mul$IMAGES.forEach((ts, idx) => {
+            if (ts.src === store_js_1._.init$tilesetImage.src)
+                store_js_1._.mul$IMAGES[idx].tileSize = newSize;
         });
-        state_js_1.default.mul$SIZE_OF_CROP = newSize;
-        state_js_1.default.init$cropSize.value = `${state_js_1.default.mul$SIZE_OF_CROP}`;
-        document.getElementById("gridCropSize").value = `${state_js_1.default.mul$SIZE_OF_CROP}`;
+        store_js_1._.mul$SIZE_OF_CROP = newSize;
+        store_js_1._.init$cropSize.value = `${store_js_1._.mul$SIZE_OF_CROP}`;
+        document.getElementById("gridCropSize").value = `${store_js_1._.mul$SIZE_OF_CROP}`;
         // console.log("NEW SIZE", tilesetDataSel.value,tileSets[tilesetDataSel.value], newSize,ACTIVE_MAP, maps)
         (0, exports.updateZoom)();
         (0, exports.updateTilesetGridContainer)();
@@ -1192,7 +1183,7 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     };
     exports.setCropSize = setCropSize;
     const setLayer = (newLayer) => {
-        state_js_1.default.setLayer$currentLayer = Number(newLayer);
+        store_js_1._.setLayer$currentLayer = Number(newLayer);
         const oldActivedLayer = document.querySelector(".layer.active");
         if (oldActivedLayer)
             oldActivedLayer.classList.remove("active");
@@ -1204,13 +1195,13 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
         document
             .querySelector(`.layer[tile-layer="${newLayer}"]`)
             ?.classList.add("active");
-        activeLayerLabel.innerHTML = (0, html_js_1.activeLayerLabelHTML)(state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[newLayer]);
+        activeLayerLabel.innerHTML = (0, html_js_1.activeLayerLabelHTML)(store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[newLayer]);
         if (layerOpacitySlider) {
-            layerOpacitySlider.value = `${state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[newLayer]?.opacity}`;
+            layerOpacitySlider.value = `${store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[newLayer]?.opacity}`;
             layerOpacitySlider.addEventListener("change", (e) => {
                 (0, exports.addToUndoStack)();
                 layerOpacitySliderValue.innerText = (0, helper_js_1.target)(e).value;
-                state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[state_js_1.default.setLayer$currentLayer].opacity =
+                store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[store_js_1._.setLayer$currentLayer].opacity =
                     Number((0, helper_js_1.target)(e).value);
                 (0, exports.draw)();
                 (0, exports.updateLayers)();
@@ -1226,9 +1217,9 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
             if (!setLayerVisBtn)
                 throw new Error("dom not found");
             const layerNumber = Number(layer);
-            state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[layerNumber].visible =
-                override || !state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[layerNumber].visible;
-            setLayerVisBtn.innerHTML = state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers[layerNumber]
+            store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[layerNumber].visible =
+                override || !store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[layerNumber].visible;
+            setLayerVisBtn.innerHTML = store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers[layerNumber]
                 .visible
                 ? "👁️"
                 : "👓";
@@ -1236,57 +1227,61 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
         };
         const trashLayer = (layer) => {
             const layerNumber = Number(layer);
-            state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers.splice(layerNumber, 1);
+            store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers.splice(layerNumber, 1);
             (0, exports.updateLayers)();
-            (0, exports.setLayer)(state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers.length - 1);
+            (0, exports.setLayer)(store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers.length - 1);
             (0, exports.draw)();
         };
-        state_js_1.default.init$layersElement.innerHTML = state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers
+        store_js_1._.init$layersElement.innerHTML = store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers
             .map((layer, index) => (0, html_js_1.layersElementHTML)({
             layer,
             index,
-            enableButton: state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers.length > 1,
+            enableButton: store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers.length > 1,
         }))
             .reverse()
             .join("\n");
-        state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers.forEach((_, index) => {
+        store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers.forEach((_, index) => {
             const selectLayerBtn = document.getElementById(`selectLayerBtn-${index}`);
             const setLayerVisBtn = document.getElementById(`setLayerVisBtn-${index}`);
             const trashLayerBtn = document.getElementById(`trashLayerBtn-${index}`);
             selectLayerBtn.addEventListener("click", (e) => {
+                //@ts-expect-error FIXME: number?
                 (0, exports.setLayer)((0, helper_js_1.target)(e).getAttribute("tile-layer"));
                 (0, exports.addToUndoStack)();
             });
             setLayerVisBtn.addEventListener("click", (e) => {
+                //@ts-expect-error FIXME: type error
                 setLayerIsVisible({ draw: exports.draw }, !!(0, helper_js_1.target)(e).getAttribute("vis-layer"));
                 (0, exports.addToUndoStack)();
             });
             trashLayerBtn.addEventListener("click", (e) => {
+                //@ts-expect-error FIXME: number?
                 trashLayer((0, helper_js_1.target)(e).getAttribute("trash-layer"));
                 (0, exports.addToUndoStack)();
             });
+            //@ts-expect-error FIXME: number?
             setLayerIsVisible(index, true);
         });
-        (0, exports.setLayer)(state_js_1.default.setLayer$currentLayer);
+        (0, exports.setLayer)(store_js_1._.setLayer$currentLayer);
     };
     exports.updateLayers = updateLayers;
     const getTile = (key, allLayers = false) => {
-        const layers = state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].layers;
-        state_js_1.default.getTile$editedEntity = undefined;
+        const layers = store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].layers;
+        store_js_1._.getTile$editedEntity = undefined;
         const clicked = allLayers
             ? [...layers].reverse().find((layer, index) => {
                 if (layer.animatedTiles && key in layer.animatedTiles) {
                     (0, exports.setLayer)(layers.length - index - 1);
-                    state_js_1.default.getTile$editedEntity = layer.animatedTiles[key];
+                    store_js_1._.getTile$editedEntity = layer.animatedTiles[key];
                 }
                 if (key in layer.tiles) {
                     (0, exports.setLayer)(layers.length - index - 1);
                     return layer.tiles[key];
                 }
             })?.tiles[key] //TODO this doesnt work on animatedTiles
-            : layers[state_js_1.default.setLayer$currentLayer].tiles[key];
-        if (clicked && !state_js_1.default.getTile$editedEntity) {
-            state_js_1.default.mul$selection = [clicked];
+            : layers[store_js_1._.setLayer$currentLayer].tiles[key];
+        if (clicked && !store_js_1._.getTile$editedEntity) {
+            store_js_1._.mul$selection = [clicked];
             // console.log("clicked", clicked, "entity data",editedEntity)
             document.getElementById("toggleFlipX").checked =
                 !!clicked?.isFlippedX;
@@ -1300,13 +1295,17 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
             (0, exports.updateSelection)();
             return true;
         }
-        else if (state_js_1.default.getTile$editedEntity) {
+        else if (store_js_1._.getTile$editedEntity) {
             // console.log("Animated tile found", editedEntity)
-            state_js_1.default.mul$selection = state_js_1.default.getTile$editedEntity.tiles;
+            //@ts-expect-error FIXME: never
+            store_js_1._.mul$selection = store_js_1._.getTile$editedEntity.tiles;
             document.getElementById("toggleFlipX").checked =
-                state_js_1.default.getTile$editedEntity.isFlippedX;
-            (0, exports.setLayer)(state_js_1.default.getTile$editedEntity.layer);
-            state_js_1.default.init$tileFrameSel.value = state_js_1.default.getTile$editedEntity.name;
+                //@ts-expect-error FIXME: never
+                store_js_1._.getTile$editedEntity.isFlippedX;
+            //@ts-expect-error FIXME: never
+            (0, exports.setLayer)(store_js_1._.getTile$editedEntity.layer);
+            //@ts-expect-error FIXME: never
+            store_js_1._.init$tileFrameSel.value = store_js_1._.getTile$editedEntity.name;
             (0, exports.updateSelection)();
             (0, exports.selectMode)("frames");
             return true;
@@ -1317,20 +1316,20 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     };
     exports.getTile = getTile;
     const setActiveMap = (id) => {
-        state_js_1.default.mul$ACTIVE_MAP = id;
+        store_js_1._.mul$ACTIVE_MAP = id;
         document.getElementById("gridColorSel").value =
-            state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].gridColor || "#00FFFF";
+            store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].gridColor || "#00FFFF";
         (0, exports.draw)();
         (0, exports.updateMapSize)({
-            mapWidth: state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].mapWidth,
-            mapHeight: state_js_1.default.mul$maps[state_js_1.default.mul$ACTIVE_MAP].mapHeight,
+            mapWidth: store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].mapWidth,
+            mapHeight: store_js_1._.mul$maps[store_js_1._.mul$ACTIVE_MAP].mapHeight,
         });
         (0, exports.updateLayers)();
     };
     exports.setActiveMap = setActiveMap;
     // Note: only call this when tileset images have changed
     const reloadTilesets = () => {
-        const getEmptyTileSet = ({ src, name = "tileset", gridWidth, gridHeight, tileData = {}, symbolStartIdx, tileSize = state_js_1.default.mul$SIZE_OF_CROP, tags = {}, frames = {}, width, height, description = "n/a", }) => {
+        const getEmptyTileSet = ({ src, name = "tileset", gridWidth, gridHeight, tileData = {}, symbolStartIdx, tileSize = store_js_1._.mul$SIZE_OF_CROP, tags = {}, frames = {}, width, height, description = "n/a", }) => {
             return {
                 src,
                 name,
@@ -1347,32 +1346,32 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                 height,
             };
         };
-        state_js_1.default.reloadTilesets$TILESET_ELEMENTS = [];
-        state_js_1.default.init$tilesetDataSel.innerHTML = "";
+        store_js_1._.reloadTilesets$TILESET_ELEMENTS = [];
+        store_js_1._.init$tilesetDataSel.innerHTML = "";
         // Use to prevent old data from erasure
-        const oldTilesets = { ...state_js_1.default.mul$tileSets };
-        state_js_1.default.mul$tileSets = {};
+        const oldTilesets = { ...store_js_1._.mul$tileSets };
+        store_js_1._.mul$tileSets = {};
         // let symbolStartIdx = 0;
         // Generate tileset data for each of the loaded images
-        state_js_1.default.mul$IMAGES.forEach((tsImage, idx) => {
+        store_js_1._.mul$IMAGES.forEach((tsImage, idx) => {
             const newOpt = document.createElement("option");
             newOpt.innerText = tsImage.name || `tileset ${idx}`;
             newOpt.value = `${idx}`;
-            state_js_1.default.init$tilesetDataSel.appendChild(newOpt);
+            store_js_1._.init$tilesetDataSel.appendChild(newOpt);
             const tilesetImgElement = document.createElement("img");
             tilesetImgElement.src = tsImage.src;
             tilesetImgElement.crossOrigin = "Anonymous";
-            state_js_1.default.reloadTilesets$TILESET_ELEMENTS.push(tilesetImgElement);
+            store_js_1._.reloadTilesets$TILESET_ELEMENTS.push(tilesetImgElement);
         });
-        Promise.all(Array.from(state_js_1.default.reloadTilesets$TILESET_ELEMENTS)
+        Promise.all(Array.from(store_js_1._.reloadTilesets$TILESET_ELEMENTS)
             .filter((img) => !img.complete)
             .map((img) => new Promise((resolve) => {
             img.onload = img.onerror = resolve;
         }))).then(() => {
             // console.log("TILESET ELEMENTS", TILESET_ELEMENTS)
-            state_js_1.default.reloadTilesets$TILESET_ELEMENTS.forEach((tsImage, idx) => {
-                const tileSize = tsImage.tileSize || state_js_1.default.mul$SIZE_OF_CROP;
-                state_js_1.default.mul$tileSets[idx] = getEmptyTileSet({
+            store_js_1._.reloadTilesets$TILESET_ELEMENTS.forEach((tsImage, idx) => {
+                const tileSize = tsImage.tileSize || store_js_1._.mul$SIZE_OF_CROP;
+                store_js_1._.mul$tileSets[idx] = getEmptyTileSet({
                     tags: oldTilesets[idx]?.tags,
                     frames: oldTilesets[idx]?.frames,
                     tileSize,
@@ -1384,30 +1383,30 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                     // FIXME: temp value
                     gridWidth: tileSize,
                     gridHeight: tileSize,
-                    symbolStartIdx: "",
+                    symbolStartIdx: 0,
                 });
             });
             // console.log("POPULATED", tileSets)
             (0, exports.reevaluateTilesetsData)();
-            state_js_1.default.init$tilesetImage.src = state_js_1.default.reloadTilesets$TILESET_ELEMENTS[0].src;
-            state_js_1.default.init$tilesetImage.crossOrigin = "Anonymous";
+            store_js_1._.init$tilesetImage.src = store_js_1._.reloadTilesets$TILESET_ELEMENTS[0].src;
+            store_js_1._.init$tilesetImage.crossOrigin = "Anonymous";
             (0, exports.updateSelection)(false);
             (0, exports.updateTilesetGridContainer)();
         });
         // finally current tileset loaded
-        state_js_1.default.init$tilesetImage.addEventListener("load", () => {
+        store_js_1._.init$tilesetImage.addEventListener("load", () => {
             (0, exports.draw)();
             (0, exports.updateLayers)();
-            if (state_js_1.default.mul$selection.length === 0)
-                state_js_1.default.mul$selection = [(0, exports.getTileData)(0, 0)];
+            if (store_js_1._.mul$selection.length === 0)
+                store_js_1._.mul$selection = [(0, exports.getTileData)(0, 0)];
             (0, exports.updateSelection)(false);
             (0, exports.updateTilesetDataList)();
             (0, exports.updateTilesetDataList)(true);
             (0, exports.updateTilesetGridContainer)();
-            const tilesetImage = state_js_1.default.init$tilesetImage;
+            const tilesetImage = store_js_1._.init$tilesetImage;
             document.getElementById("tilesetSrcLabel").innerHTML = `src: <a href="${tilesetImage.src}">${tilesetImage.src}</a>`;
             document.getElementById("tilesetSrcLabel").title = tilesetImage.src;
-            const tilesetExtraInfo = state_js_1.default.mul$IMAGES.find((ts) => ts.src === tilesetImage.src);
+            const tilesetExtraInfo = store_js_1._.mul$IMAGES.find((ts) => ts.src === tilesetImage.src);
             // console.log("CHANGED TILESET", tilesetExtraInfo, IMAGES)
             if (tilesetExtraInfo) {
                 if (tilesetExtraInfo.link) {
@@ -1431,52 +1430,52 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
                     (0, exports.setCropSize)(tilesetExtraInfo.tileSize);
                 }
             }
-            (0, exports.setCropSize)(state_js_1.default.mul$tileSets[state_js_1.default.init$tilesetDataSel.value].tileSize);
+            (0, exports.setCropSize)(store_js_1._.mul$tileSets[store_js_1._.init$tilesetDataSel.value].tileSize);
             (0, exports.updateZoom)();
             // ).style = `left:${_.mul$WIDTH}px;`;
-            document.querySelector('.canvas_resizer[resizerdir="x"]').style.left = `${state_js_1.default.mul$WIDTH}px;`;
-            if (state_js_1.default.mul$undoStepPosition === -1)
+            document.querySelector('.canvas_resizer[resizerdir="x"]').style.left = `${store_js_1._.mul$WIDTH}px;`;
+            if (store_js_1._.mul$undoStepPosition === -1)
                 (0, exports.addToUndoStack)(); //initial undo stack entry
         });
     };
     exports.reloadTilesets = reloadTilesets;
     const updateMaps = () => {
-        const mapsDataSel = state_js_1.default.init$mapsDataSel;
+        const mapsDataSel = store_js_1._.init$mapsDataSel;
         mapsDataSel.innerHTML = "";
-        let lastMap = state_js_1.default.mul$ACTIVE_MAP;
-        Object.keys(state_js_1.default.mul$maps).forEach((key, idx) => {
+        let lastMap = store_js_1._.mul$ACTIVE_MAP;
+        Object.keys(store_js_1._.mul$maps).forEach((key, idx) => {
             const newOpt = document.createElement("option");
-            newOpt.innerText = state_js_1.default.mul$maps[key].name; //`map ${idx}`;
+            newOpt.innerText = store_js_1._.mul$maps[key].name; //`map ${idx}`;
             newOpt.value = key;
             mapsDataSel.appendChild(newOpt);
-            if (idx === Object.keys(state_js_1.default.mul$maps).length - 1)
+            if (idx === Object.keys(store_js_1._.mul$maps).length - 1)
                 lastMap = key;
         });
         mapsDataSel.value = lastMap;
         (0, exports.setActiveMap)(lastMap);
         document.getElementById("removeMapBtn").disabled =
-            Object.keys(state_js_1.default.mul$maps).length === 1;
+            Object.keys(store_js_1._.mul$maps).length === 1;
     };
     exports.updateMaps = updateMaps;
     const restoreFromUndoStackData = () => {
-        state_js_1.default.mul$maps = (0, utils_js_1.decoupleReferenceFromObj)(state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].maps);
-        const undoTileSets = (0, utils_js_1.decoupleReferenceFromObj)(state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].tileSets);
-        const undoIMAGES = (0, utils_js_1.decoupleReferenceFromObj)(state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].IMAGES);
-        if (JSON.stringify(state_js_1.default.mul$IMAGES) !== JSON.stringify(undoIMAGES)) {
+        store_js_1._.mul$maps = (0, utils_js_1.decoupleReferenceFromObj)(store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].maps);
+        const undoTileSets = (0, utils_js_1.decoupleReferenceFromObj)(store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].tileSets);
+        const undoIMAGES = (0, utils_js_1.decoupleReferenceFromObj)(store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].IMAGES);
+        if (JSON.stringify(store_js_1._.mul$IMAGES) !== JSON.stringify(undoIMAGES)) {
             // images needs to happen before tilesets
-            state_js_1.default.mul$IMAGES = undoIMAGES;
+            store_js_1._.mul$IMAGES = undoIMAGES;
             (0, exports.reloadTilesets)();
         }
-        if (JSON.stringify(undoTileSets) !== JSON.stringify(state_js_1.default.mul$tileSets)) {
+        if (JSON.stringify(undoTileSets) !== JSON.stringify(store_js_1._.mul$tileSets)) {
             // done to prevent the below, which is expensive
-            state_js_1.default.mul$tileSets = undoTileSets;
+            store_js_1._.mul$tileSets = undoTileSets;
             (0, exports.updateTilesetGridContainer)();
         }
-        state_js_1.default.mul$tileSets = undoTileSets;
+        store_js_1._.mul$tileSets = undoTileSets;
         (0, exports.updateTilesetDataList)();
-        const undoLayer = (0, utils_js_1.decoupleReferenceFromObj)(state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].currentLayer);
-        const undoActiveMap = (0, utils_js_1.decoupleReferenceFromObj)(state_js_1.default.clearUndoStack$undoStack[state_js_1.default.mul$undoStepPosition].ACTIVE_MAP);
-        if (undoActiveMap !== state_js_1.default.mul$ACTIVE_MAP) {
+        const undoLayer = (0, utils_js_1.decoupleReferenceFromObj)(store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].currentLayer);
+        const undoActiveMap = (0, utils_js_1.decoupleReferenceFromObj)(store_js_1._.clearUndoStack$undoStack[store_js_1._.mul$undoStepPosition].ACTIVE_MAP);
+        if (undoActiveMap !== store_js_1._.mul$ACTIVE_MAP) {
             (0, exports.setActiveMap)(undoActiveMap);
             (0, exports.updateMaps)();
         }
@@ -1487,14 +1486,14 @@ define("src/TilemapEditor/features", ["require", "exports", "src/constants/enums
     };
     exports.restoreFromUndoStackData = restoreFromUndoStackData;
 });
-define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/html", "src/TilemapEditor/utils", "src/TilemapEditor/state", "src/TilemapEditor/features", "src/constants/enums", "src/helper"], function (require, exports, html_js_2, utils_js_2, state_js_2, features_js_1, enums_js_2, helper_js_2) {
+define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/html", "src/TilemapEditor/utils", "src/TilemapEditor/store", "src/TilemapEditor/features", "src/constants/enums", "src/helper"], function (require, exports, html_js_2, utils_js_2, store_js_2, features_js_1, enums_js_2, helper_js_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.default = (exports) => (attachToId, { tileMapData, // the main data
-    tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate = () => { }, onMouseUp = null, appState, }) => {
+    tileSize, mapWidth, mapHeight, tileSetImages, applyButtonText, onApply, tileSetLoaders, tileMapExporters, tileMapImporters, onUpdate = () => { }, onMouseUp, appState, }) => {
         // Call once on element to add behavior, toggle on/off isDraggable attr to enable
-        const draggable = ({ element, onElement = null, isDrag = false, onDrag = null, limitX = false, limitY = false, onRelease = null, }) => {
-            element.setAttribute("isDraggable", isDrag);
+        const draggable = ({ element, onElement, isDrag = false, onDrag, limitX = false, limitY = false, onRelease, }) => {
+            element.setAttribute("isDraggable", `${isDrag}`);
             let isMouseDown = false;
             let mouseX;
             let mouseY;
@@ -1548,15 +1547,15 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             document.addEventListener("pointermove", onMouseMove);
         };
         const addLayer = () => {
-            const newLayerName = prompt("Enter layer name", `Layer${state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].layers.length + 1}`);
+            const newLayerName = prompt("Enter layer name", `Layer${store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].layers.length + 1}`);
             if (newLayerName !== null) {
-                state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].layers.push((0, utils_js_2.getEmptyLayer)(newLayerName));
+                store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].layers.push((0, utils_js_2.getEmptyLayer)(newLayerName));
                 (0, features_js_1.updateLayers)();
             }
         };
         const toggleTile = (event) => {
-            if (state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.PAN ||
-                !state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].layers[state_js_2.default.setLayer$currentLayer].visible)
+            if (store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.PAN ||
+                !store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].layers[store_js_2._.setLayer$currentLayer].visible)
                 return;
             const { x, y } = (0, features_js_1.getSelectedTile)(event)[0];
             const key = `${x}-${y}`;
@@ -1566,26 +1565,26 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             }
             else if (event.ctrlKey ||
                 event.button === 2 ||
-                state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.PICK) {
+                store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.PICK) {
                 const pickedTile = (0, features_js_1.getTile)(key, true);
-                if (state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.BRUSH && !pickedTile)
+                if (store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.BRUSH && !pickedTile)
                     (0, features_js_1.setActiveTool)(enums_js_2.TOOLS.ERASE);
                 //picking empty tile, sets tool to eraser
-                else if (state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.FILL ||
-                    state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.RAND)
+                else if (store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.FILL ||
+                    store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.RAND)
                     (0, features_js_1.setActiveTool)(enums_js_2.TOOLS.BRUSH); //
             }
             else {
-                if (state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.BRUSH) {
+                if (store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.BRUSH) {
                     (0, features_js_1.addTile)(key); // also works with animated
                 }
-                else if (state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.ERASE) {
+                else if (store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.ERASE) {
                     (0, features_js_1.removeTile)(key); // also works with animated
                 }
-                else if (state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.RAND) {
+                else if (store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.RAND) {
                     (0, features_js_1.addRandomTile)(key);
                 }
-                else if (state_js_2.default.mul$ACTIVE_TOOL === enums_js_2.TOOLS.FILL) {
+                else if (store_js_2._.mul$ACTIVE_TOOL === enums_js_2.TOOLS.FILL) {
                     (0, features_js_1.fillEmptyOrSameTiles)(key);
                 }
             }
@@ -1594,7 +1593,7 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         };
         const clearCanvas = () => {
             (0, features_js_1.addToUndoStack)();
-            state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].layers = [
+            store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].layers = [
                 (0, utils_js_2.getEmptyLayer)("bottom"),
                 (0, utils_js_2.getEmptyLayer)("middle"),
                 (0, utils_js_2.getEmptyLayer)("top"),
@@ -1605,11 +1604,11 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             (0, features_js_1.addToUndoStack)();
         };
         const exportJson = () => {
-            (0, features_js_1.downloadAsTextFile)({ tileSets: state_js_2.default.mul$tileSets, maps: state_js_2.default.mul$maps });
+            (0, features_js_1.downloadAsTextFile)({ tileSets: store_js_2._.mul$tileSets, maps: store_js_2._.mul$maps });
         };
         const exportImage = () => {
             (0, features_js_1.draw)(false);
-            const data = state_js_2.default.init$canvas.toDataURL();
+            const data = store_js_2._.init$canvas.toDataURL();
             const image = new Image();
             image.src = data;
             image.crossOrigin = "anonymous";
@@ -1619,37 +1618,37 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         };
         const toggleSymbolsVisible = (override = null) => {
             if (override === null)
-                state_js_2.default.toggleSymbolsVisible$DISPLAY_SYMBOLS =
-                    !state_js_2.default.toggleSymbolsVisible$DISPLAY_SYMBOLS;
+                store_js_2._.toggleSymbolsVisible$DISPLAY_SYMBOLS =
+                    !store_js_2._.toggleSymbolsVisible$DISPLAY_SYMBOLS;
             document.getElementById("setSymbolsVisBtn").innerHTML =
-                state_js_2.default.toggleSymbolsVisible$DISPLAY_SYMBOLS ? "👁️" : "👓";
+                store_js_2._.toggleSymbolsVisible$DISPLAY_SYMBOLS ? "👁️" : "👓";
             (0, features_js_1.updateTilesetGridContainer)();
         };
         const zoomIn = () => {
-            if (state_js_2.default.mul$zoomIndex >= enums_js_2.ZOOM_LEVELS.length - 1)
+            if (store_js_2._.mul$zoomIndex >= enums_js_2.ZOOM_LEVELS.length - 1)
                 return;
-            state_js_2.default.mul$zoomIndex += 1;
-            state_js_2.default.mul$ZOOM = enums_js_2.ZOOM_LEVELS[state_js_2.default.mul$zoomIndex];
+            store_js_2._.mul$zoomIndex += 1;
+            store_js_2._.mul$ZOOM = enums_js_2.ZOOM_LEVELS[store_js_2._.mul$zoomIndex];
             (0, features_js_1.updateZoom)();
         };
         const zoomOut = () => {
-            if (state_js_2.default.mul$zoomIndex === 0)
+            if (store_js_2._.mul$zoomIndex === 0)
                 return;
-            state_js_2.default.mul$zoomIndex -= 1;
-            state_js_2.default.mul$ZOOM = enums_js_2.ZOOM_LEVELS[state_js_2.default.mul$zoomIndex];
+            store_js_2._.mul$zoomIndex -= 1;
+            store_js_2._.mul$ZOOM = enums_js_2.ZOOM_LEVELS[store_js_2._.mul$zoomIndex];
             (0, features_js_1.updateZoom)();
         };
         const drawAnaliticsReport = () => {
-            const prevZoom = state_js_2.default.mul$ZOOM;
-            state_js_2.default.mul$ZOOM = 1; // needed for correct eval
+            const prevZoom = store_js_2._.mul$ZOOM;
+            store_js_2._.mul$ZOOM = 1; // needed for correct eval
             (0, features_js_1.updateZoom)();
             (0, features_js_1.draw)(false);
-            const { analizedTiles, uniqueTiles } = (0, features_js_1.getTilesAnalisis)(state_js_2.default.init$canvas.getContext("2d"), state_js_2.default.mul$WIDTH, state_js_2.default.mul$HEIGHT, state_js_2.default.mul$SIZE_OF_CROP);
-            const data = state_js_2.default.init$canvas.toDataURL();
+            const { analizedTiles, uniqueTiles } = (0, features_js_1.getTilesAnalisis)(store_js_2._.init$canvas.getContext("2d"), store_js_2._.mul$WIDTH, store_js_2._.mul$HEIGHT, store_js_2._.mul$SIZE_OF_CROP);
+            const data = store_js_2._.init$canvas.toDataURL();
             const image = new Image();
             image.src = data;
-            const ctx = state_js_2.default.init$canvas.getContext("2d");
-            state_js_2.default.mul$ZOOM = prevZoom;
+            const ctx = store_js_2._.init$canvas.getContext("2d");
+            store_js_2._.mul$ZOOM = prevZoom;
             (0, features_js_1.updateZoom)();
             (0, features_js_1.draw)(false);
             Object.values(analizedTiles).map((t) => {
@@ -1657,52 +1656,52 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                 t.coords.forEach((c, i) => {
                     const fillStyle = `rgba(255, 0, 0, ${1 / t.times - 0.35})`;
                     ctx.fillStyle = fillStyle;
-                    ctx.fillRect(c.x * state_js_2.default.mul$ZOOM, c.y * state_js_2.default.mul$ZOOM, state_js_2.default.mul$SIZE_OF_CROP * state_js_2.default.mul$ZOOM, state_js_2.default.mul$SIZE_OF_CROP * state_js_2.default.mul$ZOOM);
+                    ctx.fillRect(c.x * store_js_2._.mul$ZOOM, c.y * store_js_2._.mul$ZOOM, store_js_2._.mul$SIZE_OF_CROP * store_js_2._.mul$ZOOM, store_js_2._.mul$SIZE_OF_CROP * store_js_2._.mul$ZOOM);
                 });
             });
-            (0, utils_js_2.drawGrid)(state_js_2.default.mul$WIDTH, state_js_2.default.mul$HEIGHT, ctx, state_js_2.default.mul$SIZE_OF_CROP * state_js_2.default.mul$ZOOM, "rgba(255,213,0,0.5)");
+            (0, utils_js_2.drawGrid)(store_js_2._.mul$WIDTH, store_js_2._.mul$HEIGHT, ctx, store_js_2._.mul$SIZE_OF_CROP * store_js_2._.mul$ZOOM, "rgba(255,213,0,0.5)");
             ctx.fillStyle = "white";
             ctx.font = "bold 17px arial";
             ctx.shadowColor = "black";
             ctx.shadowBlur = 5;
             ctx.lineWidth = 3;
-            ctx.fillText(`Unique tiles: ${uniqueTiles}`, 4, state_js_2.default.mul$HEIGHT - 30);
-            ctx.fillText(`Map size: ${state_js_2.default.mul$mapTileWidth}x${state_js_2.default.mul$mapTileHeight}`, 4, state_js_2.default.mul$HEIGHT - 10);
+            ctx.fillText(`Unique tiles: ${uniqueTiles}`, 4, store_js_2._.mul$HEIGHT - 30);
+            ctx.fillText(`Map size: ${store_js_2._.mul$mapTileWidth}x${store_js_2._.mul$mapTileHeight}`, 4, store_js_2._.mul$HEIGHT - 10);
         };
         const exportUniqueTiles = () => {
-            const ctx = state_js_2.default.init$canvas.getContext("2d");
-            const prevZoom = state_js_2.default.mul$ZOOM;
-            state_js_2.default.mul$ZOOM = 1; // needed for correct eval
+            const ctx = store_js_2._.init$canvas.getContext("2d");
+            const prevZoom = store_js_2._.mul$ZOOM;
+            store_js_2._.mul$ZOOM = 1; // needed for correct eval
             (0, features_js_1.updateZoom)();
             (0, features_js_1.draw)(false);
-            const { analizedTiles } = (0, features_js_1.getTilesAnalisis)(state_js_2.default.init$canvas.getContext("2d"), state_js_2.default.mul$WIDTH, state_js_2.default.mul$HEIGHT, state_js_2.default.mul$SIZE_OF_CROP);
-            ctx.clearRect(0, 0, state_js_2.default.mul$WIDTH, state_js_2.default.mul$HEIGHT);
-            const gridWidth = state_js_2.default.init$tilesetImage.width / state_js_2.default.mul$SIZE_OF_CROP;
+            const { analizedTiles } = (0, features_js_1.getTilesAnalisis)(store_js_2._.init$canvas.getContext("2d"), store_js_2._.mul$WIDTH, store_js_2._.mul$HEIGHT, store_js_2._.mul$SIZE_OF_CROP);
+            ctx.clearRect(0, 0, store_js_2._.mul$WIDTH, store_js_2._.mul$HEIGHT);
+            const gridWidth = store_js_2._.init$tilesetImage.width / store_js_2._.mul$SIZE_OF_CROP;
             Object.values(analizedTiles).map((t, i) => {
                 const positionX = i % gridWidth;
                 const positionY = Math.floor(i / gridWidth);
                 const tileCanvas = document.createElement("canvas");
-                tileCanvas.width = state_js_2.default.mul$SIZE_OF_CROP;
-                tileCanvas.height = state_js_2.default.mul$SIZE_OF_CROP;
+                tileCanvas.width = store_js_2._.mul$SIZE_OF_CROP;
+                tileCanvas.height = store_js_2._.mul$SIZE_OF_CROP;
                 const tileCtx = tileCanvas.getContext("2d");
                 tileCtx.putImageData(t.tileData, 0, 0);
-                ctx.drawImage(tileCanvas, 0, 0, state_js_2.default.mul$SIZE_OF_CROP, state_js_2.default.mul$SIZE_OF_CROP, positionX * state_js_2.default.mul$SIZE_OF_CROP, positionY * state_js_2.default.mul$SIZE_OF_CROP, state_js_2.default.mul$SIZE_OF_CROP, state_js_2.default.mul$SIZE_OF_CROP);
+                ctx.drawImage(tileCanvas, 0, 0, store_js_2._.mul$SIZE_OF_CROP, store_js_2._.mul$SIZE_OF_CROP, positionX * store_js_2._.mul$SIZE_OF_CROP, positionY * store_js_2._.mul$SIZE_OF_CROP, store_js_2._.mul$SIZE_OF_CROP, store_js_2._.mul$SIZE_OF_CROP);
             });
-            const data = state_js_2.default.init$canvas.toDataURL();
+            const data = store_js_2._.init$canvas.toDataURL();
             const image = new Image();
             image.src = data;
             image.crossOrigin = "anonymous";
             const w = window.open("");
             w.document.write(image.outerHTML);
-            state_js_2.default.mul$ZOOM = prevZoom;
+            store_js_2._.mul$ZOOM = prevZoom;
             (0, features_js_1.updateZoom)();
             (0, features_js_1.draw)();
         };
         const renameCurrentTileSymbol = () => {
             const setTileData = (x = null, y = null, newData, key = "") => {
-                const tilesetTiles = state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].tileData;
+                const tilesetTiles = store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].tileData;
                 if (x === null && y === null) {
-                    const { x: sx, y: sy } = state_js_2.default.mul$selection[0];
+                    const { x: sx, y: sy } = store_js_2._.mul$selection[0];
                     tilesetTiles[`${sx}-${sy}`] = newData;
                 }
                 if (key !== "") {
@@ -1712,7 +1711,7 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                     tilesetTiles[`${x}-${y}`] = newData;
                 }
             };
-            const { x, y, tileSymbol } = state_js_2.default.mul$selection[0];
+            const { x, y, tileSymbol } = store_js_2._.mul$selection[0];
             const newSymbol = window.prompt("Enter tile symbol", tileSymbol || "*");
             if (newSymbol !== null) {
                 setTileData(x, y, newSymbol, "tileSymbol");
@@ -1723,7 +1722,7 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         };
         const getExportData = () => {
             const getFlattenedData = () => {
-                const result = Object.entries(state_js_2.default.mul$maps).map(([key, map]) => {
+                const result = Object.entries(store_js_2._.mul$maps).map(([key, map]) => {
                     console.log({ map });
                     const layers = map.layers;
                     const flattenedData = Array(layers.length)
@@ -1756,52 +1755,52 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                 return result;
             };
             const exportData = {
-                maps: state_js_2.default.mul$maps,
-                tileSets: state_js_2.default.mul$tileSets,
+                maps: store_js_2._.mul$maps,
+                tileSets: store_js_2._.mul$tileSets,
                 flattenedData: getFlattenedData(),
-                activeMap: state_js_2.default.mul$ACTIVE_MAP,
+                activeMap: store_js_2._.mul$ACTIVE_MAP,
                 downloadAsTextFile: features_js_1.downloadAsTextFile,
             };
             console.log("Exported ", exportData);
             return exportData;
         };
         const undo = () => {
-            if (state_js_2.default.mul$undoStepPosition === 0)
+            if (store_js_2._.mul$undoStepPosition === 0)
                 return;
-            state_js_2.default.mul$undoStepPosition -= 1;
+            store_js_2._.mul$undoStepPosition -= 1;
             (0, features_js_1.restoreFromUndoStackData)();
         };
         const redo = () => {
-            if (state_js_2.default.mul$undoStepPosition === state_js_2.default.clearUndoStack$undoStack.length - 1)
+            if (store_js_2._.mul$undoStepPosition === store_js_2._.clearUndoStack$undoStack.length - 1)
                 return;
-            state_js_2.default.mul$undoStepPosition += 1;
+            store_js_2._.mul$undoStepPosition += 1;
             (0, features_js_1.restoreFromUndoStackData)();
         };
         const loadData = (data) => {
             try {
                 (0, features_js_1.clearUndoStack)();
-                state_js_2.default.mul$WIDTH = state_js_2.default.init$canvas.width * state_js_2.default.mul$ZOOM;
-                state_js_2.default.mul$HEIGHT = state_js_2.default.init$canvas.height * state_js_2.default.mul$ZOOM;
-                state_js_2.default.mul$selection = [{}];
-                state_js_2.default.mul$ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
-                state_js_2.default.mul$maps = data
+                store_js_2._.mul$WIDTH = store_js_2._.init$canvas.width * store_js_2._.mul$ZOOM;
+                store_js_2._.mul$HEIGHT = store_js_2._.init$canvas.height * store_js_2._.mul$ZOOM;
+                store_js_2._.mul$selection = [{}];
+                store_js_2._.mul$ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
+                store_js_2._.mul$maps = data
                     ? { ...data.maps }
                     : {
-                        [state_js_2.default.mul$ACTIVE_MAP]: (0, features_js_1.getEmptyMap)("Map 1", state_js_2.default.mul$mapTileWidth, state_js_2.default.mul$mapTileHeight),
+                        [store_js_2._.mul$ACTIVE_MAP]: (0, features_js_1.getEmptyMap)("Map 1", store_js_2._.mul$mapTileWidth, store_js_2._.mul$mapTileHeight),
                     };
-                state_js_2.default.mul$tileSets = data ? { ...data.tileSets } : {};
+                store_js_2._.mul$tileSets = data ? { ...data.tileSets } : {};
                 (0, features_js_1.reloadTilesets)();
-                state_js_2.default.init$tilesetDataSel.value = "0";
-                state_js_2.default.init$cropSize.value = `${data
-                    ? state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value]?.tileSize ||
-                        state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].tileSize
-                    : state_js_2.default.mul$SIZE_OF_CROP}`;
+                store_js_2._.init$tilesetDataSel.value = "0";
+                store_js_2._.init$cropSize.value = `${data
+                    ? store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value]?.tileSize ||
+                        store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].tileSize
+                    : store_js_2._.mul$SIZE_OF_CROP}`;
                 document.getElementById("gridCropSize").value =
-                    state_js_2.default.init$cropSize.value;
+                    store_js_2._.init$cropSize.value;
                 (0, features_js_1.updateMaps)();
                 (0, features_js_1.updateMapSize)({
-                    mapWidth: state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].mapWidth,
-                    mapHeight: state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].mapHeight,
+                    mapWidth: store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].mapWidth,
+                    mapHeight: store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].mapHeight,
                 });
             }
             catch (e) {
@@ -1812,32 +1811,32 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         const attachTo = document.getElementById(attachToId);
         if (attachTo === null)
             return;
-        state_js_2.default.init_state$apiTileSetLoaders = tileSetLoaders || {};
-        state_js_2.default.init_state$apiTileSetLoaders.base64 = {
+        store_js_2._.init_state$apiTileSetLoaders = tileSetLoaders || {};
+        store_js_2._.init_state$apiTileSetLoaders.base64 = {
             name: "Fs (as base64)",
             onSelectImage: (setSrc, file, base64) => {
                 setSrc(base64);
             },
         };
-        state_js_2.default.init_state$apiTileMapExporters = tileMapExporters;
-        state_js_2.default.init_state$apiTileMapExporters.exportAsImage = {
+        store_js_2._.init_state$apiTileMapExporters = tileMapExporters;
+        store_js_2._.init_state$apiTileMapExporters.exportAsImage = {
             name: "Export Map as image",
             transformer: exportImage,
         };
-        state_js_2.default.init_state$apiTileMapExporters.saveData = {
+        store_js_2._.init_state$apiTileMapExporters.saveData = {
             name: "Download Json file",
             transformer: exportJson,
         };
-        state_js_2.default.init_state$apiTileMapExporters.analizeTilemap = {
+        store_js_2._.init_state$apiTileMapExporters.analizeTilemap = {
             name: "Analize tilemap",
             transformer: drawAnaliticsReport,
         };
-        state_js_2.default.init_state$apiTileMapExporters.exportTilesFromMap = {
+        store_js_2._.init_state$apiTileMapExporters.exportTilesFromMap = {
             name: "Extract tileset from map",
             transformer: exportUniqueTiles,
         };
-        state_js_2.default.init_state$apiTileMapImporters = tileMapImporters;
-        state_js_2.default.init_state$apiTileMapImporters.openData = {
+        store_js_2._.init_state$apiTileMapImporters = tileMapImporters;
+        store_js_2._.init_state$apiTileMapImporters.openData = {
             name: "Open Json file",
             onSelectFiles: (setData, files) => {
                 const readFile = new FileReader();
@@ -1849,56 +1848,56 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             },
             acceptFile: "application/JSON",
         };
-        state_js_2.default.init$apiOnUpdateCallback = onUpdate;
+        store_js_2._.init$apiOnUpdateCallback = onUpdate;
         if (onMouseUp) {
-            state_js_2.default.init$apiOnMouseUp = onMouseUp;
+            store_js_2._.init$apiOnMouseUp = onMouseUp;
             document
                 .getElementById("tileMapEditor")
                 .addEventListener("pointerup", function () {
-                state_js_2.default.init$apiOnMouseUp((0, features_js_1.getAppState)(), state_js_2.default.init_state$apiTileMapExporters);
+                store_js_2._.init$apiOnMouseUp((0, features_js_1.getAppState)(), store_js_2._.init_state$apiTileMapExporters);
             });
         }
         const importedTilesetImages = (tileMapData?.tileSets && Object.values(tileMapData?.tileSets)) ||
             tileSetImages;
-        state_js_2.default.mul$IMAGES = importedTilesetImages;
-        state_js_2.default.mul$SIZE_OF_CROP = importedTilesetImages?.[0]?.tileSize || tileSize || 32; //to the best of your ability, predict the init tileSize
-        state_js_2.default.mul$mapTileWidth = mapWidth || 12;
-        state_js_2.default.mul$mapTileHeight = mapHeight || 12;
+        store_js_2._.mul$IMAGES = importedTilesetImages;
+        store_js_2._.mul$SIZE_OF_CROP = importedTilesetImages?.[0]?.tileSize || tileSize || 32; //to the best of your ability, predict the init tileSize
+        store_js_2._.mul$mapTileWidth = mapWidth || 12;
+        store_js_2._.mul$mapTileHeight = mapHeight || 12;
         // const canvasWidth = mapTileWidth * tileSize * ZOOM;
         // const canvasHeight = mapTileHeight * tileSize * ZOOM;
-        if (state_js_2.default.mul$SIZE_OF_CROP < 12)
-            state_js_2.default.mul$ZOOM = 2; // Automatically start with zoom 2 when the tilesize is tiny
+        if (store_js_2._.mul$SIZE_OF_CROP < 12)
+            store_js_2._.mul$ZOOM = 2; // Automatically start with zoom 2 when the tilesize is tiny
         // Attach elements
         attachTo.innerHTML = (0, html_js_2.tilemapEditorRootHTML)({
-            width: state_js_2.default.mul$WIDTH,
-            height: state_js_2.default.mul$HEIGHT,
-            mapTileWidth: state_js_2.default.mul$mapTileWidth,
+            width: store_js_2._.mul$WIDTH,
+            height: store_js_2._.mul$HEIGHT,
+            mapTileWidth: store_js_2._.mul$mapTileWidth,
         });
         attachTo.className = "tilemap_editor_root";
-        state_js_2.default.init$tilesetImage = document.createElement("img");
-        state_js_2.default.init$cropSize = document.getElementById("cropSize");
-        state_js_2.default.init$confirmBtn = document.getElementById("confirmBtn");
+        store_js_2._.init$tilesetImage = document.createElement("img");
+        store_js_2._.init$cropSize = document.getElementById("cropSize");
+        store_js_2._.init$confirmBtn = document.getElementById("confirmBtn");
         if (onApply) {
-            state_js_2.default.init$confirmBtn.innerText = applyButtonText || "Ok";
+            store_js_2._.init$confirmBtn.innerText = applyButtonText || "Ok";
         }
         else {
-            state_js_2.default.init$confirmBtn.style.display = "none";
+            store_js_2._.init$confirmBtn.style.display = "none";
         }
-        state_js_2.default.init$canvas = document.getElementById("mapCanvas");
-        state_js_2.default.init$tilesetContainer = document.querySelector(".tileset-container");
-        state_js_2.default.init$tilesetSelection = document.querySelector(".tileset-container-selection");
-        // tilesetGridContainer = document.getElementById("tilesetGridContainer");
-        state_js_2.default.init$layersElement = document.getElementById("layers");
-        state_js_2.default.init$objectParametersEditor = document.getElementById("objectParametersEditor");
-        state_js_2.default.init$tilesetContainer.addEventListener("contextmenu", (e) => {
+        store_js_2._.init$canvas = document.getElementById("mapCanvas");
+        store_js_2._.init$tilesetContainer = document.querySelector(".tileset-container");
+        store_js_2._.init$tilesetSelection = document.querySelector(".tileset-container-selection");
+        // tilesetGridContainer = document.getElementById("tilesetGridContainer")!;
+        store_js_2._.init$layersElement = document.getElementById("layers");
+        store_js_2._.init$objectParametersEditor = document.getElementById("objectParametersEditor");
+        store_js_2._.init$tilesetContainer.addEventListener("contextmenu", (e) => {
             e.preventDefault();
         });
-        state_js_2.default.init$tilesetContainer.addEventListener("pointerdown", (e) => {
-            state_js_2.default.init$tileSelectStart = (0, features_js_1.getSelectedTile)(e)[0];
+        store_js_2._.init$tilesetContainer.addEventListener("pointerdown", (e) => {
+            store_js_2._.init$tileSelectStart = (0, features_js_1.getSelectedTile)(e)[0];
         });
-        state_js_2.default.init$tilesetContainer.addEventListener("pointermove", (e) => {
-            if (state_js_2.default.init$tileSelectStart !== null) {
-                state_js_2.default.mul$selection = (0, features_js_1.getSelectedTile)(e);
+        store_js_2._.init$tilesetContainer.addEventListener("pointermove", (e) => {
+            if (store_js_2._.init$tileSelectStart !== null) {
+                store_js_2._.mul$selection = (0, features_js_1.getSelectedTile)(e);
                 (0, features_js_1.updateSelection)();
             }
         });
@@ -1906,13 +1905,13 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             console.log({ animName, objectName });
             if (objectName === "" || typeof objectName !== "string")
                 return;
-            state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[objectName] = {
-                ...(state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[objectName] ||
+            store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[objectName] = {
+                ...(store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[objectName] ||
                     {}),
-                width: state_js_2.default.updateSelection$selectionSize[0],
-                height: state_js_2.default.updateSelection$selectionSize[1],
-                start: state_js_2.default.mul$selection[0],
-                tiles: state_js_2.default.mul$selection,
+                width: store_js_2._.updateSelection$selectionSize[0],
+                height: store_js_2._.updateSelection$selectionSize[1],
+                start: store_js_2._.mul$selection[0],
+                tiles: store_js_2._.mul$selection,
                 name: objectName,
                 //To be set when placing tile
                 layer: undefined,
@@ -1921,28 +1920,28 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                 yPos: 0, //TODO free position
             };
         };
-        state_js_2.default.init$tilesetContainer.addEventListener("pointerup", (e) => {
+        store_js_2._.init$tilesetContainer.addEventListener("pointerup", (e) => {
             setTimeout(() => {
                 document.getElementById("tilesetDataDetails").open = false;
             }, 100);
-            state_js_2.default.mul$selection = (0, features_js_1.getSelectedTile)(e);
+            store_js_2._.mul$selection = (0, features_js_1.getSelectedTile)(e);
             (0, features_js_1.updateSelection)();
-            state_js_2.default.mul$selection = (0, features_js_1.getSelectedTile)(e);
-            state_js_2.default.init$tileSelectStart = null;
-            const viewMode = state_js_2.default.init$tileDataSel.value;
+            store_js_2._.mul$selection = (0, features_js_1.getSelectedTile)(e);
+            store_js_2._.init$tileSelectStart = null;
+            const viewMode = store_js_2._.init$tileDataSel.value;
             if (viewMode === "" && e.button === 2) {
                 renameCurrentTileSymbol();
                 return;
             }
             if (e.button === 0) {
-                if (state_js_2.default.toggleSymbolsVisible$DISPLAY_SYMBOLS &&
+                if (store_js_2._.toggleSymbolsVisible$DISPLAY_SYMBOLS &&
                     viewMode !== "" &&
                     viewMode !== "frames") {
-                    state_js_2.default.mul$selection.forEach((selected) => {
+                    store_js_2._.mul$selection.forEach((selected) => {
                         (0, features_js_1.addToUndoStack)();
                         const { x, y } = selected;
                         const tileKey = `${x}-${y}`;
-                        const tagTiles = state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value]?.tags[viewMode]
+                        const tagTiles = store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value]?.tags[viewMode]
                             ?.tiles;
                         if (tagTiles) {
                             if (tileKey in tagTiles) {
@@ -1955,13 +1954,13 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                     });
                 }
                 else if (viewMode === "frames") {
-                    setFramesToSelection(state_js_2.default.init$tileFrameSel.value);
+                    setFramesToSelection(store_js_2._.init$tileFrameSel.value);
                 }
                 (0, features_js_1.updateTilesetGridContainer)();
             }
         });
-        state_js_2.default.init$tilesetContainer.addEventListener("dblclick", (e) => {
-            const viewMode = state_js_2.default.init$tileDataSel.value;
+        store_js_2._.init$tilesetContainer.addEventListener("dblclick", (e) => {
+            const viewMode = store_js_2._.init$tileDataSel.value;
             if (viewMode === "") {
                 renameCurrentTileSymbol();
             }
@@ -1971,39 +1970,41 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             addLayer();
         });
         // Maps DATA callbacks
-        state_js_2.default.init$mapsDataSel = document.getElementById("mapsDataSel");
-        state_js_2.default.init$mapsDataSel.addEventListener("change", (e) => {
+        store_js_2._.init$mapsDataSel = document.getElementById("mapsDataSel");
+        store_js_2._.init$mapsDataSel.addEventListener("change", (e) => {
             (0, features_js_1.addToUndoStack)();
             (0, features_js_1.setActiveMap)((0, helper_js_2.target)(e).value);
             (0, features_js_1.addToUndoStack)();
         });
         document.getElementById("addMapBtn").addEventListener("click", () => {
-            const suggestMapName = `Map ${Object.keys(state_js_2.default.mul$maps).length + 1}`;
+            const suggestMapName = `Map ${Object.keys(store_js_2._.mul$maps).length + 1}`;
             const result = window.prompt("Enter new map key...", suggestMapName);
             if (result !== null) {
                 (0, features_js_1.addToUndoStack)();
                 const newMapKey = result.trim().replaceAll(" ", "_") || suggestMapName;
-                if (newMapKey in state_js_2.default.mul$maps) {
+                if (newMapKey in store_js_2._.mul$maps) {
                     alert("A map with this key already exists.");
                     return;
                 }
-                state_js_2.default.mul$maps[newMapKey] = (0, features_js_1.getEmptyMap)(result.trim());
+                store_js_2._.mul$maps[newMapKey] = (0, features_js_1.getEmptyMap)(result.trim());
                 (0, features_js_1.addToUndoStack)();
                 (0, features_js_1.updateMaps)();
             }
         });
-        document.getElementById("duplicateMapBtn").addEventListener("click", () => {
+        document
+            .getElementById("duplicateMapBtn")
+            .addEventListener("click", () => {
             const makeNewKey = (key) => {
                 const suggestedNew = `${key}_copy`;
-                if (suggestedNew in state_js_2.default.mul$maps) {
+                if (suggestedNew in store_js_2._.mul$maps) {
                     return makeNewKey(suggestedNew);
                 }
                 return suggestedNew;
             };
             (0, features_js_1.addToUndoStack)();
-            const newMapKey = makeNewKey(state_js_2.default.mul$ACTIVE_MAP);
-            state_js_2.default.mul$maps[newMapKey] = {
-                ...JSON.parse(JSON.stringify(state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP])),
+            const newMapKey = makeNewKey(store_js_2._.mul$ACTIVE_MAP);
+            store_js_2._.mul$maps[newMapKey] = {
+                ...JSON.parse(JSON.stringify(store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP])),
                 name: newMapKey,
             }; // todo prompt to ask for name
             (0, features_js_1.updateMaps)();
@@ -2011,14 +2012,14 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         });
         document.getElementById("removeMapBtn").addEventListener("click", () => {
             (0, features_js_1.addToUndoStack)();
-            delete state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP];
-            (0, features_js_1.setActiveMap)(Object.keys(state_js_2.default.mul$maps)[0]);
+            delete store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP];
+            (0, features_js_1.setActiveMap)(Object.keys(store_js_2._.mul$maps)[0]);
             (0, features_js_1.updateMaps)();
             (0, features_js_1.addToUndoStack)();
         });
         // Tileset DATA Callbacks //tileDataSel
-        state_js_2.default.init$tileDataSel = document.getElementById("tileDataSel");
-        state_js_2.default.init$tileDataSel.addEventListener("change", () => {
+        store_js_2._.init$tileDataSel = document.getElementById("tileDataSel");
+        store_js_2._.init$tileDataSel.addEventListener("change", () => {
             (0, features_js_1.selectMode)();
         });
         document.getElementById("addTileTagBtn").addEventListener("click", () => {
@@ -2029,11 +2030,11 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             });
             const result = window.prompt("Name your tag", "solid()");
             if (result !== null) {
-                if (result in state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].tags) {
+                if (result in store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].tags) {
                     alert("Tag already exists");
                     return;
                 }
-                state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].tags[result] =
+                store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].tags[result] =
                     getEmptyTilesetTag(result, result);
                 (0, features_js_1.updateTilesetDataList)();
                 (0, features_js_1.addToUndoStack)();
@@ -2042,61 +2043,62 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         document
             .getElementById("removeTileTagBtn")
             .addEventListener("click", () => {
-            if (state_js_2.default.init$tileDataSel.value &&
-                state_js_2.default.init$tileDataSel.value in
-                    state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].tags) {
-                delete state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].tags[state_js_2.default.init$tileDataSel.value];
+            if (store_js_2._.init$tileDataSel.value &&
+                store_js_2._.init$tileDataSel.value in
+                    store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].tags) {
+                delete store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].tags[store_js_2._.init$tileDataSel.value];
                 (0, features_js_1.updateTilesetDataList)();
                 (0, features_js_1.addToUndoStack)();
             }
         });
         // Tileset frames
-        state_js_2.default.init$tileFrameSel = document.getElementById("tileFrameSel");
-        state_js_2.default.init$tileFrameSel.addEventListener("change", (e) => {
-            state_js_2.default.state$el.tileFrameCount().value = (0, features_js_1.getCurrentFrames)()?.frameCount || 1;
+        store_js_2._.init$tileFrameSel = document.getElementById("tileFrameSel");
+        store_js_2._.init$tileFrameSel.addEventListener("change", (e) => {
+            store_js_2._.state$el.tileFrameCount().value = (0, features_js_1.getCurrentFrames)()?.frameCount || 1;
             (0, features_js_1.updateTilesetDataList)(true);
             (0, features_js_1.updateTilesetGridContainer)();
         });
-        state_js_2.default.state$el.animStart().addEventListener("change", (e) => {
-            (0, features_js_1.getCurrentAnimation)().start = Number(state_js_2.default.state$el.animStart().value);
+        store_js_2._.state$el.animStart().addEventListener("change", (e) => {
+            (0, features_js_1.getCurrentAnimation)().start = Number(store_js_2._.state$el.animStart().value);
         });
-        state_js_2.default.state$el.animEnd().addEventListener("change", (e) => {
-            (0, features_js_1.getCurrentAnimation)().end = Number(state_js_2.default.state$el.animEnd().value);
+        store_js_2._.state$el.animEnd().addEventListener("change", (e) => {
+            (0, features_js_1.getCurrentAnimation)().end = Number(store_js_2._.state$el.animEnd().value);
         });
-        document.getElementById("addTileFrameBtn").addEventListener("click", () => {
-            const result = window.prompt("Name your object", `obj${Object.keys(state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value]?.frames || {})
-                .length}`);
+        document
+            .getElementById("addTileFrameBtn")
+            .addEventListener("click", () => {
+            const result = window.prompt("Name your object", `obj${Object.keys(store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value]?.frames || {}).length}`);
             if (result !== null) {
-                if (result in state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames) {
+                if (result in store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames) {
                     alert("Object already exists");
                     return;
                 }
-                state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[result] = {
-                    frameCount: Number(state_js_2.default.state$el.tileFrameCount().value),
+                store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[result] = {
+                    frameCount: Number(store_js_2._.state$el.tileFrameCount().value),
                     animations: {
                         a1: {
                             start: 1,
-                            end: Number(state_js_2.default.state$el.tileFrameCount().value) || 1,
+                            end: Number(store_js_2._.state$el.tileFrameCount().value) || 1,
                             name: "a1",
-                            loop: state_js_2.default.state$el.animLoop().checked,
-                            speed: Number(state_js_2.default.state$el.animSpeed().value),
+                            loop: store_js_2._.state$el.animLoop().checked,
+                            speed: Number(store_js_2._.state$el.animSpeed().value),
                         },
                     },
                 };
                 setFramesToSelection(result);
                 (0, features_js_1.updateTilesetDataList)(true);
-                state_js_2.default.init$tileFrameSel.value = result;
+                store_js_2._.init$tileFrameSel.value = result;
                 (0, features_js_1.updateTilesetGridContainer)();
             }
         });
         document
             .getElementById("removeTileFrameBtn")
             .addEventListener("click", () => {
-            if (state_js_2.default.init$tileFrameSel.value &&
-                state_js_2.default.init$tileFrameSel.value in
-                    state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames &&
-                confirm(`Are you sure you want to delete ${state_js_2.default.init$tileFrameSel.value}`)) {
-                delete state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value];
+            if (store_js_2._.init$tileFrameSel.value &&
+                store_js_2._.init$tileFrameSel.value in
+                    store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames &&
+                confirm(`Are you sure you want to delete ${store_js_2._.init$tileFrameSel.value}`)) {
+                delete store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value];
                 (0, features_js_1.updateTilesetDataList)(true);
                 (0, features_js_1.updateTilesetGridContainer)();
             }
@@ -2122,95 +2124,95 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
                 (0, features_js_1.updateTilesetDataList)(true);
             }
         };
-        state_js_2.default.state$el.renameTileFrameBtn().addEventListener("click", () => {
+        store_js_2._.state$el.renameTileFrameBtn().addEventListener("click", () => {
             // could be a generic function
-            renameKeyInObjectForSelectElement(state_js_2.default.init$tileFrameSel, state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value]?.frames, "object");
+            renameKeyInObjectForSelectElement(store_js_2._.init$tileFrameSel, store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value]?.frames, "object");
         });
-        state_js_2.default.state$el.tileFrameCount().addEventListener("change", (e) => {
-            if (state_js_2.default.init$tileFrameSel.value === "")
+        store_js_2._.state$el.tileFrameCount().addEventListener("change", (e) => {
+            if (store_js_2._.init$tileFrameSel.value === "")
                 return;
             (0, features_js_1.getCurrentFrames)().frameCount = Number((0, helper_js_2.target)(e).value);
             (0, features_js_1.updateTilesetGridContainer)();
         });
         // animations
-        state_js_2.default.init$tileAnimSel = document.getElementById("tileAnimSel");
-        state_js_2.default.init$tileAnimSel.addEventListener("change", (e) => {
+        store_js_2._.init$tileAnimSel = document.getElementById("tileAnimSel");
+        store_js_2._.init$tileAnimSel.addEventListener("change", (e) => {
             //swap with tileAnimSel
-            console.log("anim select", e, state_js_2.default.init$tileAnimSel.value);
-            state_js_2.default.state$el.animStart().value = (0, features_js_1.getCurrentAnimation)()?.start || 1;
-            state_js_2.default.state$el.animEnd().value = (0, features_js_1.getCurrentAnimation)()?.end || 1;
-            state_js_2.default.state$el.animLoop().checked = (0, features_js_1.getCurrentAnimation)()?.loop || false;
-            state_js_2.default.state$el.animSpeed().value = (0, features_js_1.getCurrentAnimation)()?.speed || 1;
+            console.log("anim select", e, store_js_2._.init$tileAnimSel.value);
+            store_js_2._.state$el.animStart().value = (0, features_js_1.getCurrentAnimation)()?.start || 1;
+            store_js_2._.state$el.animEnd().value = (0, features_js_1.getCurrentAnimation)()?.end || 1;
+            store_js_2._.state$el.animLoop().checked = (0, features_js_1.getCurrentAnimation)()?.loop || false;
+            store_js_2._.state$el.animSpeed().value = (0, features_js_1.getCurrentAnimation)()?.speed || 1;
             (0, features_js_1.updateTilesetGridContainer)();
         });
         document.getElementById("addTileAnimBtn").addEventListener("click", () => {
-            const result = window.prompt("Name your animation", `anim${Object.keys(state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value]?.frames[state_js_2.default.init$tileFrameSel.value]?.animations || {}).length}`);
+            const result = window.prompt("Name your animation", `anim${Object.keys(store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value]?.frames[store_js_2._.init$tileFrameSel.value]?.animations || {}).length}`);
             if (result !== null) {
-                if (!state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value]?.animations) {
-                    state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value].animations = {};
+                if (!store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value]?.animations) {
+                    store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value].animations = {};
                 }
                 if (result in
-                    state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value]?.animations) {
+                    store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value]?.animations) {
                     alert("Animation already exists");
                     return;
                 }
-                state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value].animations[result] = {
+                store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value].animations[result] = {
                     start: 1,
-                    end: Number(state_js_2.default.state$el.tileFrameCount().value || 1),
-                    loop: state_js_2.default.state$el.animLoop().checked,
-                    speed: Number(state_js_2.default.state$el.animSpeed().value || 1),
+                    end: Number(store_js_2._.state$el.tileFrameCount().value || 1),
+                    loop: store_js_2._.state$el.animLoop().checked,
+                    speed: Number(store_js_2._.state$el.animSpeed().value || 1),
                     name: result,
                 };
                 // setFramesToSelection(tileFrameSel.value, result);
                 (0, features_js_1.updateTilesetDataList)(true);
-                state_js_2.default.init$tileAnimSel.value = result;
+                store_js_2._.init$tileAnimSel.value = result;
                 (0, features_js_1.updateTilesetGridContainer)();
             }
         });
         document
             .getElementById("removeTileAnimBtn")
             .addEventListener("click", () => {
-            console.log("delete", state_js_2.default.init$tileAnimSel.value, state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value].animations);
-            if (state_js_2.default.init$tileAnimSel.value &&
-                state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value]?.animations &&
-                state_js_2.default.init$tileAnimSel.value in
-                    state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value]?.animations &&
-                confirm(`Are you sure you want to delete ${state_js_2.default.init$tileAnimSel.value}`)) {
-                delete state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value].frames[state_js_2.default.init$tileFrameSel.value].animations[state_js_2.default.init$tileAnimSel.value];
+            console.log("delete", store_js_2._.init$tileAnimSel.value, store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value].animations);
+            if (store_js_2._.init$tileAnimSel.value &&
+                store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value]?.animations &&
+                store_js_2._.init$tileAnimSel.value in
+                    store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value]?.animations &&
+                confirm(`Are you sure you want to delete ${store_js_2._.init$tileAnimSel.value}`)) {
+                delete store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value].frames[store_js_2._.init$tileFrameSel.value].animations[store_js_2._.init$tileAnimSel.value];
                 (0, features_js_1.updateTilesetDataList)(true);
                 (0, features_js_1.updateTilesetGridContainer)();
             }
         });
-        state_js_2.default.state$el.renameTileAnimBtn().addEventListener("click", () => {
-            renameKeyInObjectForSelectElement(state_js_2.default.init$tileAnimSel, state_js_2.default.mul$tileSets[state_js_2.default.init$tilesetDataSel.value]?.frames[state_js_2.default.init$tileFrameSel.value]?.animations, "animation");
+        store_js_2._.state$el.renameTileAnimBtn().addEventListener("click", () => {
+            renameKeyInObjectForSelectElement(store_js_2._.init$tileAnimSel, store_js_2._.mul$tileSets[store_js_2._.init$tilesetDataSel.value]?.frames[store_js_2._.init$tileFrameSel.value]?.animations, "animation");
         });
-        state_js_2.default.state$el.animLoop().addEventListener("change", () => {
-            (0, features_js_1.getCurrentAnimation)().loop = state_js_2.default.state$el.animLoop().checked;
+        store_js_2._.state$el.animLoop().addEventListener("change", () => {
+            (0, features_js_1.getCurrentAnimation)().loop = store_js_2._.state$el.animLoop().checked;
         });
-        state_js_2.default.state$el.animSpeed().addEventListener("change", (e) => {
-            (0, features_js_1.getCurrentAnimation)().speed = state_js_2.default.state$el.animSpeed().value;
+        store_js_2._.state$el.animSpeed().addEventListener("change", (e) => {
+            (0, features_js_1.getCurrentAnimation)().speed = store_js_2._.state$el.animSpeed().value;
         });
         // Tileset SELECT callbacks
-        state_js_2.default.init$tilesetDataSel = document.getElementById("tilesetDataSel");
-        state_js_2.default.init$tilesetDataSel.addEventListener("change", (e) => {
-            state_js_2.default.init$tilesetImage.src =
-                state_js_2.default.reloadTilesets$TILESET_ELEMENTS[(0, helper_js_2.target)(e).value].src;
-            state_js_2.default.init$tilesetImage.crossOrigin = "Anonymous";
+        store_js_2._.init$tilesetDataSel = document.getElementById("tilesetDataSel");
+        store_js_2._.init$tilesetDataSel.addEventListener("change", (e) => {
+            store_js_2._.init$tilesetImage.src =
+                store_js_2._.reloadTilesets$TILESET_ELEMENTS[(0, helper_js_2.target)(e).value].src;
+            store_js_2._.init$tilesetImage.crossOrigin = "Anonymous";
             (0, features_js_1.updateTilesetDataList)();
         });
-        state_js_2.default.state$el.tileFrameCount().addEventListener("change", () => {
-            state_js_2.default.state$el.animStart().max = state_js_2.default.state$el.tileFrameCount().value;
-            state_js_2.default.state$el.animEnd().max = state_js_2.default.state$el.tileFrameCount().value;
+        store_js_2._.state$el.tileFrameCount().addEventListener("change", () => {
+            store_js_2._.state$el.animStart().max = store_js_2._.state$el.tileFrameCount().value;
+            store_js_2._.state$el.animEnd().max = store_js_2._.state$el.tileFrameCount().value;
         });
         const replaceSelectedTileSet = (src) => {
             (0, features_js_1.addToUndoStack)();
-            state_js_2.default.mul$IMAGES[Number(state_js_2.default.init$tilesetDataSel.value)].src = src;
+            store_js_2._.mul$IMAGES[Number(store_js_2._.init$tilesetDataSel.value)].src = src;
             (0, features_js_1.reloadTilesets)();
         };
         const addNewTileSet = (src) => {
             console.log("add new tileset" + src);
             (0, features_js_1.addToUndoStack)();
-            state_js_2.default.mul$IMAGES.push({ src });
+            store_js_2._.mul$IMAGES.push({ src });
             (0, features_js_1.reloadTilesets)();
         };
         exports.addNewTileSet = addNewTileSet;
@@ -2219,19 +2221,19 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             .getElementById("tilesetReplaceInput")
             .addEventListener("change", (e) => {
             (0, utils_js_2.toBase64)((0, helper_js_2.target)(e).files[0]).then((base64Src) => {
-                if (state_js_2.default.init_state$selectedTileSetLoader.onSelectImage) {
-                    state_js_2.default.init_state$selectedTileSetLoader.onSelectImage(replaceSelectedTileSet, (0, helper_js_2.target)(e).files[0], base64Src);
+                if (store_js_2._.init_state$selectedTileSetLoader.onSelectImage) {
+                    store_js_2._.init_state$selectedTileSetLoader.onSelectImage(replaceSelectedTileSet, (0, helper_js_2.target)(e).files[0], base64Src);
                 }
             });
         });
         document
             .getElementById("replaceTilesetBtn")
             .addEventListener("click", () => {
-            if (state_js_2.default.init_state$selectedTileSetLoader.onSelectImage) {
+            if (store_js_2._.init_state$selectedTileSetLoader.onSelectImage) {
                 document.getElementById("tilesetReplaceInput").click();
             }
-            if (state_js_2.default.init_state$selectedTileSetLoader.prompt) {
-                state_js_2.default.init_state$selectedTileSetLoader.prompt(replaceSelectedTileSet);
+            if (store_js_2._.init_state$selectedTileSetLoader.prompt) {
+                store_js_2._.init_state$selectedTileSetLoader.prompt(replaceSelectedTileSet);
             }
         });
         // add tileset
@@ -2239,22 +2241,22 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             .getElementById("tilesetReadInput")
             .addEventListener("change", (e) => {
             (0, utils_js_2.toBase64)((0, helper_js_2.target)(e).files[0]).then((base64Src) => {
-                if (state_js_2.default.init_state$selectedTileSetLoader.onSelectImage) {
-                    state_js_2.default.init_state$selectedTileSetLoader.onSelectImage(addNewTileSet, (0, helper_js_2.target)(e).files[0], base64Src);
+                if (store_js_2._.init_state$selectedTileSetLoader.onSelectImage) {
+                    store_js_2._.init_state$selectedTileSetLoader.onSelectImage(addNewTileSet, (0, helper_js_2.target)(e).files[0], base64Src);
                 }
             });
         });
         // remove tileset
         document.getElementById("addTilesetBtn").addEventListener("click", () => {
-            if (state_js_2.default.init_state$selectedTileSetLoader.onSelectImage) {
+            if (store_js_2._.init_state$selectedTileSetLoader.onSelectImage) {
                 document.getElementById("tilesetReadInput").click();
             }
-            if (state_js_2.default.init_state$selectedTileSetLoader.prompt) {
-                state_js_2.default.init_state$selectedTileSetLoader.prompt(addNewTileSet);
+            if (store_js_2._.init_state$selectedTileSetLoader.prompt) {
+                store_js_2._.init_state$selectedTileSetLoader.prompt(addNewTileSet);
             }
         });
         const tileSetLoadersSel = document.getElementById("tileSetLoadersSel");
-        Object.entries(state_js_2.default.init_state$apiTileSetLoaders).forEach(([key, loader]) => {
+        Object.entries(store_js_2._.init_state$apiTileSetLoaders).forEach(([key, loader]) => {
             const tsLoaderOption = document.createElement("option");
             tsLoaderOption.value = key;
             tsLoaderOption.innerText = loader.name;
@@ -2262,44 +2264,44 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             // apiTileSetLoaders[key].load = () => tileSetLoaders
         });
         tileSetLoadersSel.value = "base64";
-        state_js_2.default.init_state$selectedTileSetLoader =
-            state_js_2.default.init_state$apiTileSetLoaders[tileSetLoadersSel.value];
+        store_js_2._.init_state$selectedTileSetLoader =
+            store_js_2._.init_state$apiTileSetLoaders[tileSetLoadersSel.value];
         tileSetLoadersSel.addEventListener("change", (e) => {
-            state_js_2.default.init_state$selectedTileSetLoader =
-                state_js_2.default.init_state$apiTileSetLoaders[(0, helper_js_2.target)(e).value];
+            store_js_2._.init_state$selectedTileSetLoader =
+                store_js_2._.init_state$apiTileSetLoaders[(0, helper_js_2.target)(e).value];
         });
-        exports.tilesetLoaders = state_js_2.default.init_state$apiTileSetLoaders;
+        exports.tilesetLoaders = store_js_2._.init_state$apiTileSetLoaders;
         const deleteTilesetWithIndex = (index, cb = null) => {
             if (confirm(`Are you sure you want to delete this image?`)) {
                 (0, features_js_1.addToUndoStack)();
-                state_js_2.default.mul$IMAGES.splice(index, 1);
+                store_js_2._.mul$IMAGES.splice(index, 1);
                 (0, features_js_1.reloadTilesets)();
                 if (cb)
                     cb();
             }
         };
-        exports.IMAGES = state_js_2.default.mul$IMAGES;
+        exports.IMAGES = store_js_2._.mul$IMAGES;
         exports.deleteTilesetWithIndex = deleteTilesetWithIndex;
         document
             .getElementById("removeTilesetBtn")
             .addEventListener("click", () => {
             //Remove current tileset
-            if (state_js_2.default.init$tilesetDataSel.value !== "0") {
-                deleteTilesetWithIndex(Number(state_js_2.default.init$tilesetDataSel.value));
+            if (store_js_2._.init$tilesetDataSel.value !== "0") {
+                deleteTilesetWithIndex(Number(store_js_2._.init$tilesetDataSel.value));
             }
         });
         // Canvas callbacks
-        state_js_2.default.init$canvas.addEventListener("pointerdown", features_js_1.setMouseIsTrue);
-        state_js_2.default.init$canvas.addEventListener("pointerup", features_js_1.setMouseIsFalse);
-        state_js_2.default.init$canvas.addEventListener("pointerleave", features_js_1.setMouseIsFalse);
-        state_js_2.default.init$canvas.addEventListener("pointerdown", toggleTile);
-        state_js_2.default.init$canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+        store_js_2._.init$canvas.addEventListener("pointerdown", features_js_1.setMouseIsTrue);
+        store_js_2._.init$canvas.addEventListener("pointerup", features_js_1.setMouseIsFalse);
+        store_js_2._.init$canvas.addEventListener("pointerleave", features_js_1.setMouseIsFalse);
+        store_js_2._.init$canvas.addEventListener("pointerdown", toggleTile);
+        store_js_2._.init$canvas.addEventListener("contextmenu", (e) => e.preventDefault());
         draggable({
-            onElement: state_js_2.default.init$canvas,
+            onElement: store_js_2._.init$canvas,
             element: document.getElementById("canvas_wrapper"),
         });
-        state_js_2.default.init$canvas.addEventListener("pointermove", (e) => {
-            if (state_js_2.default.mul$isMouseDown && state_js_2.default.mul$ACTIVE_TOOL !== 2)
+        store_js_2._.init$canvas.addEventListener("pointermove", (e) => {
+            if (store_js_2._.mul$isMouseDown && store_js_2._.mul$ACTIVE_TOOL !== 2)
                 toggleTile(e);
         });
         // Canvas Resizer ===================
@@ -2346,25 +2348,25 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         document.getElementById("gridCropSize").addEventListener("change", (e) => {
             (0, features_js_1.setCropSize)(Number((0, helper_js_2.target)(e).value));
         });
-        state_js_2.default.init$cropSize.addEventListener("change", (e) => {
+        store_js_2._.init$cropSize.addEventListener("change", (e) => {
             (0, features_js_1.setCropSize)(Number((0, helper_js_2.target)(e).value));
         });
         document
             .getElementById("clearCanvasBtn")
             .addEventListener("click", clearCanvas);
         if (onApply) {
-            state_js_2.default.init$confirmBtn.addEventListener("click", () => onApply.onClick(getExportData()));
+            store_js_2._.init$confirmBtn.addEventListener("click", () => onApply.onClick(getExportData()));
         }
         document.getElementById("renameMapBtn").addEventListener("click", () => {
-            const newName = window.prompt("Change map name:", state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].name || "Map");
-            if (newName !== null && state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].name !== newName) {
-                if (Object.values(state_js_2.default.mul$maps)
+            const newName = window.prompt("Change map name:", store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].name || "Map");
+            if (newName !== null && store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].name !== newName) {
+                if (Object.values(store_js_2._.mul$maps)
                     .map((map) => map.name)
                     .includes(newName)) {
                     alert(`${newName} already exists`);
                     return;
                 }
-                state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].name = newName;
+                store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].name = newName;
                 (0, features_js_1.updateMaps)();
             }
         });
@@ -2382,10 +2384,10 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             makeMenuItem(exporter.name, key, exporter.description).onclick = () => {
                 exporter.transformer(getExportData());
             };
-            state_js_2.default.init_state$apiTileMapExporters[key].getData = () => exporter.transformer(getExportData());
+            store_js_2._.init_state$apiTileMapExporters[key].getData = () => exporter.transformer(getExportData());
         });
-        exports.exporters = state_js_2.default.init_state$apiTileMapExporters;
-        Object.entries(state_js_2.default.init_state$apiTileMapImporters).forEach(([key, importer]) => {
+        exports.exporters = store_js_2._.init_state$apiTileMapExporters;
+        Object.entries(store_js_2._.init_state$apiTileMapImporters).forEach(([key, importer]) => {
             makeMenuItem(importer.name, key, importer.description).onclick = () => {
                 if (importer.onSelectFiles) {
                     const input = document.createElement("input");
@@ -2418,11 +2420,11 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         });
         document.getElementById("gridColorSel").addEventListener("change", (e) => {
             console.log("grid col", (0, helper_js_2.target)(e).value);
-            state_js_2.default.mul$maps[state_js_2.default.mul$ACTIVE_MAP].gridColor = (0, helper_js_2.target)(e).value;
+            store_js_2._.mul$maps[store_js_2._.mul$ACTIVE_MAP].gridColor = (0, helper_js_2.target)(e).value;
             (0, features_js_1.draw)();
         });
         document.getElementById("showGrid").addEventListener("change", (e) => {
-            state_js_2.default.init$SHOW_GRID = (0, helper_js_2.target)(e).checked;
+            store_js_2._.init$SHOW_GRID = (0, helper_js_2.target)(e).checked;
             (0, features_js_1.draw)();
         });
         document.getElementById("undoBtn").addEventListener("click", undo);
@@ -2433,7 +2435,7 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
             .getElementById("setSymbolsVisBtn")
             .addEventListener("click", () => toggleSymbolsVisible());
         // Scroll zoom in/out - use wheel instead of scroll event since theres no scrollbar on the map
-        state_js_2.default.init$canvas.addEventListener("wheel", (e) => {
+        store_js_2._.init$canvas.addEventListener("wheel", (e) => {
             if (e.deltaY < 0)
                 zoomIn();
             else
@@ -2441,40 +2443,40 @@ define("src/TilemapEditor/init/index", ["require", "exports", "src/constants/htm
         });
         loadData(tileMapData);
         if (appState) {
-            state_js_2.default.mul$ACTIVE_MAP = appState.ACTIVE_MAP;
-            state_js_2.default.init$mapsDataSel.value = state_js_2.default.mul$ACTIVE_MAP;
+            store_js_2._.mul$ACTIVE_MAP = appState.ACTIVE_MAP;
+            store_js_2._.init$mapsDataSel.value = store_js_2._.mul$ACTIVE_MAP;
             (0, features_js_1.setActiveMap)(appState.ACTIVE_MAP);
-            state_js_2.default.mul$PREV_ACTIVE_TOOL = appState.PREV_ACTIVE_TOOL;
-            state_js_2.default.mul$ACTIVE_TOOL = appState.ACTIVE_TOOL;
+            store_js_2._.mul$PREV_ACTIVE_TOOL = appState.PREV_ACTIVE_TOOL;
+            store_js_2._.mul$ACTIVE_TOOL = appState.ACTIVE_TOOL;
             (0, features_js_1.setActiveTool)(appState.ACTIVE_TOOL);
             (0, features_js_1.setLayer)(appState.currentLayer);
-            state_js_2.default.mul$selection = appState.selection;
+            store_js_2._.mul$selection = appState.selection;
             (0, features_js_1.updateSelection)(false);
-            state_js_2.default.init$SHOW_GRID = appState.SHOW_GRID;
+            store_js_2._.init$SHOW_GRID = appState.SHOW_GRID;
         }
         // Animated tiles when on frames mode
         const animateTiles = () => {
-            if (state_js_2.default.init$tileDataSel.value === "frames")
+            if (store_js_2._.init$tileDataSel.value === "frames")
                 (0, features_js_1.draw)();
             requestAnimationFrame(animateTiles);
         };
         requestAnimationFrame(animateTiles);
     };
 });
-define("src/TilemapEditor/index", ["require", "exports", "src/TilemapEditor/init/index", "src/TilemapEditor/features", "src/TilemapEditor/state", "src/TilemapEditor/utils"], function (require, exports, index_js_1, features_js_2, state_js_3, utils_js_3) {
+define("src/TilemapEditor/index", ["require", "exports", "src/TilemapEditor/init/index", "src/TilemapEditor/features", "src/TilemapEditor/store", "src/TilemapEditor/utils"], function (require, exports, index_js_1, features_js_2, store_js_3, utils_js_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    Object.keys(state_js_3.default.state$el).forEach((key) => {
-        state_js_3.default.state$el[key] = () => document.getElementById(key);
+    Object.keys(store_js_3._.state$el).forEach((key) => {
+        store_js_3._.state$el[key] = () => document.getElementById(key);
     });
     class TilemapEditor {
         static toBase64 = utils_js_3.toBase64;
-        static getLayers = () => state_js_3.default.mul$maps[state_js_3.default.mul$ACTIVE_MAP].layers;
+        static getLayers = () => store_js_3._.mul$maps[store_js_3._.mul$ACTIVE_MAP].layers;
         static init = (0, index_js_1.default)(TilemapEditor);
         static getState = () => (0, features_js_2.getAppState)();
-        static onUpdate = state_js_3.default.init$apiOnUpdateCallback;
-        static onMouseUp = state_js_3.default.init$apiOnMouseUp;
-        static getTilesets = () => state_js_3.default.mul$tileSets;
+        static onUpdate = store_js_3._.init$apiOnUpdateCallback;
+        static onMouseUp = store_js_3._.init$apiOnMouseUp;
+        static getTilesets = () => store_js_3._.mul$tileSets;
     }
     exports.default = TilemapEditor;
 });
@@ -2561,7 +2563,9 @@ define("src/index", ["require", "exports", "src/constants/tileSetImages", "src/g
             },
             // If passed, a new button gets added to the header, upon being clicked, you can get data from the tilemap editor and trigger events
             onApply: {
-                onClick: ({ flattenedData, maps, tileSets, activeMap }) => {
+                onClick: ({ flattenedData, 
+                // maps,
+                tileSets, }) => {
                     console.log("onClick, gets the data too");
                     const copyText = document.createElement("input");
                     document.body.appendChild(copyText);
@@ -2580,7 +2584,7 @@ define("src/index", ["require", "exports", "src/constants/tileSetImages", "src/g
                 },
                 buttonText: "Copy Kb to clip", // controls the apply button's text
             },
-            onUpdate(ev) {
+            onUpdate(_ev) {
                 // callback for when the app updates its state (loaded data, tool, etc)
                 // console.log("-->>", ev)
             },
@@ -2608,7 +2612,7 @@ define("src/index", ["require", "exports", "src/constants/tileSetImages", "src/g
                         }
                         extractedSourceMatch = image.description.match(/source\:\s*(.*)/);
                     }
-                    let extractedTilesetName;
+                    let extractedTilesetName = [];
                     if (image.description && image.description.includes("name:")) {
                         extractedTilesetName = image.description.match(/name\:\s*(.*)/);
                     }
@@ -2721,10 +2725,10 @@ define("src/index", ["require", "exports", "src/constants/tileSetImages", "src/g
         console.warn("not found: #addPwaBtn");
     }
 });
+// Example data structure that tiledmap-editor can read and write
 define("src/constants/ioJsonData", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    // Example data structure that tiledmap-editor can read and write
     //https://imgur.com/a/SjjsjTm
     exports.default = {
         tileSets: {

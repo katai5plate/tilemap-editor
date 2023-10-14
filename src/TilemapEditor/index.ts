@@ -1,10 +1,11 @@
 import init from "./init/index.js";
 import { getAppState } from "./features.js";
-import _ from "./state.js";
+import { _ } from "./store.js";
 import { toBase64 } from "./utils.js";
 
 Object.keys(_.state$el).forEach((key) => {
-  _.state$el[key] = () => document.getElementById(key);
+  (_.state$el as Record<string, () => HTMLElement | null>)[key] = () =>
+    document.getElementById(key);
 });
 
 export default class TilemapEditor {

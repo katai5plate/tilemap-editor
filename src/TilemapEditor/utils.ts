@@ -1,4 +1,6 @@
-export const toBase64 = (file) =>
+import { Layer } from "./store";
+
+export const toBase64 = (file: File) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -7,9 +9,9 @@ export const toBase64 = (file) =>
   });
 
 export const drawGrid = (
-  w,
-  h,
-  ctx,
+  w: number,
+  h: number,
+  ctx: CanvasRenderingContext2D,
   step = 16,
   color = "rgba(0,255,217,0.5)"
 ) => {
@@ -27,13 +29,14 @@ export const drawGrid = (
   ctx.stroke();
 };
 
-export const decoupleReferenceFromObj = (obj) =>
+export const decoupleReferenceFromObj = (obj: unknown) =>
   JSON.parse(JSON.stringify(obj));
 
-export const getEmptyLayer = (name = "layer") => ({
-  tiles: {},
-  visible: true,
-  name,
-  animatedTiles: {},
-  opacity: 1,
-});
+export const getEmptyLayer = (name = "layer") =>
+  ({
+    tiles: {},
+    visible: true,
+    name,
+    animatedTiles: {},
+    opacity: 1,
+  } as Layer);

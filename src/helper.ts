@@ -1,1 +1,2 @@
-export const target = (e: Event) => e.target as HTMLInputElement & { result };
+export const target = (e: Event) =>
+  e.target as HTMLInputElement & { result: string };
