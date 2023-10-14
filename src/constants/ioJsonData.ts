@@ -1164,7 +1164,7 @@ export default {
       description: "n/a",
     },
     1: {
-      src: "https://blurymind.github.io/tilemap-editor/free.png",
+      src: "./assets/free.png",
       name: "tileset 1",
       gridWidth: 5,
       gridHeight: 6,

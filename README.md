@@ -146,7 +146,7 @@ TilemapEditor.init("tileMapEditor",{ // The id of the element that will become t
  // How many tiles is the initial map tall
  mapHeight: 20,
  // tileset images src (required)
- tileSetImages: ["https://i.imgur.com/ztwPZOI.png", "./free.png"],
+ tileSetImages: ["https://i.imgur.com/ztwPZOI.png", "./assets/free.png"],
  // You can write your own custom load image function here and use it for the tileset src. If you dont, the base64 string will be used instead
  tileSetLoaders: {
      fromUrl: {

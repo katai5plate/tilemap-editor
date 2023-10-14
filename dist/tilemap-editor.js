@@ -75,7 +75,7 @@ define("src/constants/tileSetImages", ["require", "exports"], function (require,
                 Still the author decided he has lots to say about the thing and even include a link`,
         },
         {
-            src: "https://blurymind.github.io/tilemap-editor/free.png",
+            src: "./assets/free.png",
         },
     ];
 });
@@ -3890,7 +3890,7 @@ define("src/constants/ioJsonData", ["require", "exports"], function (require, ex
                 description: "n/a",
             },
             1: {
-                src: "https://blurymind.github.io/tilemap-editor/free.png",
+                src: "./assets/free.png",
                 name: "tileset 1",
                 gridWidth: 5,
                 gridHeight: 6,

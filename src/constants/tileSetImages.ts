@@ -8,6 +8,6 @@ export default [
                 Still the author decided he has lots to say about the thing and even include a link`,
   },
   {
-    src: "https://blurymind.github.io/tilemap-editor/free.png",
+    src: "./assets/free.png",
   },
 ];

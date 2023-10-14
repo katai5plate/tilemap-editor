@@ -1,4 +1,4 @@
-const cacheName = "1697246412525";
+const cacheName = "1697246995214";
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
@@ -10,6 +10,7 @@ self.addEventListener("install", (e) => {
           "/tilemap-editor/index.html",
           "/tilemap-editor/dist/tilemap-editor.js",
           "/tilemap-editor/dist/tilemap-editor.js.map",
+          "/tilemap-editor/styles/icon.png",
           "/tilemap-editor/styles/index.css",
           "/tilemap-editor/styles/tilemap-editor.css",
         ])
