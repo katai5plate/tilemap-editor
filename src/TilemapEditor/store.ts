@@ -3,6 +3,23 @@
 // _.mul$ -- 複数個所で書き換わる
 // _.state$ -- 状態管理オブジェクト
 
+// export interface FlattenedDataItem {
+//   map?: string;
+//   maps?: Record<string, TileMap>;
+//   tileSet?: TileSet;
+//   tileSets?: Record<string, TileSet>;
+//   flattenedData: {
+//     tile: Tile | null;
+//     tileSymbol: string;
+//   }[][][];
+//   activeMap?: string;
+//   downloadAsTextFile?: (input: unknown, fileName?: string) => void;
+// }
+// export type FlattenedData = FlattenedDataItem[];
+
+export type FlattenedDataItem = any;
+export type FlattenedData = any;
+
 export interface AppState {
   undoStack: Stack[];
   undoStepPosition: number;
@@ -13,7 +30,7 @@ export interface AppState {
   SHOW_GRID: boolean;
   selection: Tile[];
 }
-interface Stack {
+export interface Stack {
   maps: Record<string, TileMap>;
   tileSets: Record<string, TileSet>;
   currentLayer: AppState["currentLayer"];
@@ -50,28 +67,30 @@ export interface TileSet {
 // AnimatedTile
 export interface Frame {
   frameCount: number;
-  width: number;
-  height: number;
-  start: Tile;
-  tiles: Tile[];
-  name: string;
+  width?: number;
+  height?: number;
+  start?: Tile;
+  tiles?: Tile[];
+  name?: string;
   layer?: number;
-  isFlippedX: boolean;
-  xPos: number;
-  yPos: number;
+  isFlippedX?: boolean;
+  xPos?: number;
+  yPos?: number;
   animations?: Record<
     string,
     {
       start: number;
       end: number;
+      name?: string;
       loop: boolean;
       speed: number;
     }
   >;
 }
 
-interface Tag {
+export interface Tag {
   name: string;
+  code?: string;
   tiles: Record<
     string,
     | string
@@ -88,6 +107,7 @@ export interface Layer {
   animatedTiles?: Record<string, Frame>;
   opacity?: number;
 }
+
 export interface TileMap {
   name: string;
   layers: Layer[];
@@ -121,6 +141,48 @@ export interface ImageJSON {
   link?: string;
   description?: string;
 }
+
+export interface ApiTileMapExporters {
+  exportAsImage?: {
+    name: string;
+    transformer: () => void;
+  };
+  saveData?: {
+    name: string;
+    transformer: () => void;
+  };
+  analizeTilemap?: {
+    name: string;
+    transformer: () => void;
+  };
+  exportTilesFromMap?: {
+    name: string;
+    transformer: () => void;
+  };
+}
+export interface ApiTileMapImporters {
+  openData?: {
+    name: string;
+    onSelectFiles: (setData: (json: unknown) => void, files: File[]) => void;
+    acceptFile: string;
+  };
+}
+export type ApiTileSetLoaders = {
+  base64?: {
+    name: string;
+    onSelectImage: (
+      setSrc: (base64: unknown) => void,
+      file: unknown,
+      base64: unknown
+    ) => void;
+  };
+  onSelectImage?: (
+    replaceSelectedTileSet: unknown,
+    file: unknown,
+    base64Src: unknown
+  ) => void;
+  prompt?: (replaceSelectedTileSet: unknown) => void;
+};
 
 export interface Refs {
   tileFrameCount?: () => HTMLInputElement;
@@ -170,49 +232,10 @@ interface State {
   mul$isMouseDown: boolean;
   mul$maps: Stack["maps"];
   mul$tileSets: Stack["tileSets"];
-  init_state$apiTileSetLoaders: {
-    base64?: {
-      name: string;
-      onSelectImage: (
-        setSrc: (base64: unknown) => void,
-        file: unknown,
-        base64: unknown
-      ) => void;
-    };
-  };
-  init_state$selectedTileSetLoader: {
-    onSelectImage: (
-      replaceSelectedTileSet: unknown,
-      file: unknown,
-      base64Src: unknown
-    ) => void;
-    prompt: (replaceSelectedTileSet: unknown) => void;
-  };
-  init_state$apiTileMapExporters: {
-    exportAsImage?: {
-      name: string;
-      transformer: () => void;
-    };
-    saveData?: {
-      name: string;
-      transformer: () => void;
-    };
-    analizeTilemap?: {
-      name: string;
-      transformer: () => void;
-    };
-    exportTilesFromMap?: {
-      name: string;
-      transformer: () => void;
-    };
-  };
-  init_state$apiTileMapImporters: {
-    openData?: {
-      name: string;
-      onSelectFiles: (setData: (json: unknown) => void, files: unknown) => void;
-      acceptFile: string;
-    };
-  };
+  init_state$apiTileSetLoaders: ApiTileSetLoaders;
+  init_state$selectedTileSetLoader: ApiTileSetLoaders;
+  init_state$apiTileMapExporters: ApiTileMapExporters;
+  init_state$apiTileMapImporters: ApiTileMapImporters;
   init$apiOnUpdateCallback: (...args: unknown[]) => void;
   init$apiOnMouseUp: (
     getAppState: unknown,

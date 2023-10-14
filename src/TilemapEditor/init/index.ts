@@ -1,7 +1,21 @@
-//@ts-nocheck
 import { tilemapEditorRootHTML } from "../../constants/html.js";
 import { toBase64, drawGrid, getEmptyLayer } from "../utils.js";
-import { AppState, ImageJSON, Tile, TileMapData, _ } from "../store.js";
+import {
+  ApiTileMapExporters,
+  AppState,
+  FlattenedData,
+  FlattenedDataItem,
+  ImageJSON,
+  Stack,
+  Tile,
+  TileMapData,
+  _,
+  ApiTileMapImporters,
+  ApiTileSetLoaders,
+  Tag,
+  TileMap,
+  TileSet,
+} from "../store.js";
 import {
   getEmptyMap,
   getAppState,
@@ -40,7 +54,7 @@ import { target } from "../../helper.js";
 
 export default (exports: Function) =>
   (
-    attachToId: number,
+    attachToId: string,
     {
       tileMapData, // the main data
       tileSize,
@@ -62,10 +76,10 @@ export default (exports: Function) =>
       mapHeight: number;
       tileSetImages: ImageJSON[];
       applyButtonText: string;
-      onApply: () => void;
-      tileSetLoaders: unknown;
-      tileMapExporters: unknown;
-      tileMapImporters: unknown;
+      onApply?: { onClick: (data: FlattenedDataItem) => void };
+      tileSetLoaders: ApiTileSetLoaders;
+      tileMapExporters: ApiTileMapExporters;
+      tileMapImporters: ApiTileMapImporters;
       onUpdate?: () => void;
       onMouseUp?: () => void;
       appState: AppState;
@@ -82,12 +96,19 @@ export default (exports: Function) =>
       onRelease,
     }: {
       element: HTMLElement;
-      onElement?: () => void;
-      isDrag: boolean;
-      onDrag?: (e: MouseEvent) => void;
+      onElement?: HTMLCanvasElement;
+      isDrag?: boolean;
+      onDrag?: (e: {
+        deltaX: number;
+        deltaY: number;
+        x: number;
+        y: number;
+        mouseX: number;
+        mouseY: number;
+      }) => void;
       limitX?: boolean;
       limitY?: boolean;
-      onRelease?: () => void;
+      onRelease?: (e: { x: number; y: number }) => void;
     }) => {
       element.setAttribute("isDraggable", `${isDrag}`);
       let isMouseDown = false;
@@ -119,7 +140,7 @@ export default (exports: Function) =>
             mouseY,
           });
       };
-      const onMouseDown = (event) => {
+      const onMouseDown = (event: MouseEvent) => {
         if (element.getAttribute("isDraggable") === "false") return;
 
         mouseX = event.clientX;
@@ -150,7 +171,7 @@ export default (exports: Function) =>
       }
     };
 
-    const toggleTile = (event) => {
+    const toggleTile = (event: MouseEvent) => {
       if (
         _.mul$ACTIVE_TOOL === TOOLS.PAN ||
         !_.mul$maps[_.mul$ACTIVE_MAP].layers[_.setLayer$currentLayer].visible
@@ -211,11 +232,11 @@ export default (exports: Function) =>
 
     const exportImage = () => {
       draw(false);
-      const data = _.init$canvas.toDataURL();
+      const data = _.init$canvas!.toDataURL();
       const image = new Image();
       image.src = data;
       image.crossOrigin = "anonymous";
-      const w = window.open("");
+      const w = window.open("")!;
       w.document.write(image.outerHTML);
       draw();
     };
@@ -294,26 +315,26 @@ export default (exports: Function) =>
     };
 
     const exportUniqueTiles = () => {
-      const ctx = _.init$canvas.getContext("2d");
+      const ctx = _.init$canvas!.getContext("2d")!;
       const prevZoom = _.mul$ZOOM;
       _.mul$ZOOM = 1; // needed for correct eval
       updateZoom();
       draw(false);
       const { analizedTiles } = getTilesAnalisis(
-        _.init$canvas.getContext("2d"),
+        _.init$canvas!.getContext("2d")!,
         _.mul$WIDTH,
         _.mul$HEIGHT,
         _.mul$SIZE_OF_CROP
       );
       ctx.clearRect(0, 0, _.mul$WIDTH, _.mul$HEIGHT);
-      const gridWidth = _.init$tilesetImage.width / _.mul$SIZE_OF_CROP;
+      const gridWidth = _.init$tilesetImage!.width / _.mul$SIZE_OF_CROP;
       Object.values(analizedTiles).map((t, i) => {
         const positionX = i % gridWidth;
         const positionY = Math.floor(i / gridWidth);
         const tileCanvas = document.createElement("canvas");
         tileCanvas.width = _.mul$SIZE_OF_CROP;
         tileCanvas.height = _.mul$SIZE_OF_CROP;
-        const tileCtx = tileCanvas.getContext("2d");
+        const tileCtx = tileCanvas.getContext("2d")!;
         tileCtx.putImageData(t.tileData, 0, 0);
         ctx.drawImage(
           tileCanvas,
@@ -327,11 +348,11 @@ export default (exports: Function) =>
           _.mul$SIZE_OF_CROP
         );
       });
-      const data = _.init$canvas.toDataURL();
+      const data = _.init$canvas!.toDataURL();
       const image = new Image();
       image.src = data;
       image.crossOrigin = "anonymous";
-      const w = window.open("");
+      const w = window.open("")!;
       w.document.write(image.outerHTML);
       _.mul$ZOOM = prevZoom;
       updateZoom();
@@ -339,20 +360,23 @@ export default (exports: Function) =>
     };
 
     const renameCurrentTileSymbol = () => {
-      const setTileData = (x = null, y = null, newData, key = "") => {
+      const setTileData = (x = NaN, y = NaN, newData: string, key = "") => {
         const tilesetTiles =
-          _.mul$tileSets[_.init$tilesetDataSel.value].tileData;
-        if (x === null && y === null) {
+          _.mul$tileSets[_.init$tilesetDataSel!.value].tileData;
+        if (Number.isNaN(x) && Number.isNaN(y)) {
           const { x: sx, y: sy } = _.mul$selection[0];
+          //@ts-expect-error FIXME: type error
           tilesetTiles[`${sx}-${sy}`] = newData;
         }
         if (key !== "") {
+          //@ts-expect-error FIXME: type error
           tilesetTiles[`${x}-${y}`][key] = newData;
         } else {
+          //@ts-expect-error FIXME: type error
           tilesetTiles[`${x}-${y}`] = newData;
         }
       };
-      const { x, y, tileSymbol } = _.mul$selection[0];
+      const { x, y, tileSymbol } = _.mul$selection[0]!;
       const newSymbol = window.prompt("Enter tile symbol", tileSymbol || "*");
       if (newSymbol !== null) {
         setTileData(x, y, newSymbol, "tileSymbol");
@@ -367,15 +391,17 @@ export default (exports: Function) =>
         const result = Object.entries(_.mul$maps).map(([key, map]) => {
           console.log({ map });
           const layers = map.layers;
-          const flattenedData = Array(layers.length)
+          const flattenedData: FlattenedDataItem["flattenedData"] = Array(
+            layers.length
+          )
             .fill([])
             .map(() => {
               return Array(map.mapHeight)
                 .fill([])
-                .map((row) => {
+                .map((_row) => {
                   return Array(map.mapWidth)
                     .fill([])
-                    .map((column) => ({
+                    .map((_column) => ({
                       tile: null,
                       tileSymbol: " ", // a space is an empty tile
                     }));
@@ -419,11 +445,11 @@ export default (exports: Function) =>
       restoreFromUndoStackData();
     };
 
-    const loadData = (data) => {
+    const loadData = (data: TileMapData) => {
       try {
         clearUndoStack();
-        _.mul$WIDTH = _.init$canvas.width * _.mul$ZOOM;
-        _.mul$HEIGHT = _.init$canvas.height * _.mul$ZOOM;
+        _.mul$WIDTH = _.init$canvas!.width * _.mul$ZOOM;
+        _.mul$HEIGHT = _.init$canvas!.height * _.mul$ZOOM;
         _.mul$selection = [{} as Tile];
         _.mul$ACTIVE_MAP = data ? Object.keys(data.maps)[0] : "Map_1";
         _.mul$maps = data
@@ -437,15 +463,15 @@ export default (exports: Function) =>
             };
         _.mul$tileSets = data ? { ...data.tileSets } : {};
         reloadTilesets();
-        _.init$tilesetDataSel.value = "0";
-        _.init$cropSize.value = `${
+        _.init$tilesetDataSel!.value = "0";
+        _.init$cropSize!.value = `${
           data
-            ? _.mul$tileSets[_.init$tilesetDataSel.value]?.tileSize ||
+            ? _.mul$tileSets[_.init$tilesetDataSel!.value]?.tileSize ||
               _.mul$maps[_.mul$ACTIVE_MAP].tileSize
             : _.mul$SIZE_OF_CROP
         }`;
         (document.getElementById("gridCropSize")! as HTMLInputElement).value =
-          _.init$cropSize.value;
+          _.init$cropSize!.value;
         updateMaps();
         updateMapSize({
           mapWidth: _.mul$maps[_.mul$ACTIVE_MAP].mapWidth,
@@ -502,7 +528,7 @@ export default (exports: Function) =>
     if (onMouseUp) {
       _.init$apiOnMouseUp = onMouseUp;
       document
-        .getElementById("tileMapEditor")
+        .getElementById("tileMapEditor")!
         .addEventListener("pointerup", function () {
           _.init$apiOnMouseUp(getAppState(), _.init_state$apiTileMapExporters);
         });
@@ -538,10 +564,12 @@ export default (exports: Function) =>
       _.init$confirmBtn.style.display = "none";
     }
     _.init$canvas = document.getElementById("mapCanvas")! as HTMLCanvasElement;
-    _.init$tilesetContainer = document.querySelector(".tileset-container");
+    _.init$tilesetContainer = document.querySelector(
+      ".tileset-container"
+    )! as HTMLElement;
     _.init$tilesetSelection = document.querySelector(
       ".tileset-container-selection"
-    );
+    )! as HTMLElement;
     // tilesetGridContainer = document.getElementById("tilesetGridContainer")!;
     _.init$layersElement = document.getElementById("layers")!;
     _.init$objectParametersEditor = document.getElementById(
@@ -562,11 +590,11 @@ export default (exports: Function) =>
       }
     });
 
-    const setFramesToSelection = (objectName, animName = "") => {
+    const setFramesToSelection = (objectName: string, animName = "") => {
       console.log({ animName, objectName });
       if (objectName === "" || typeof objectName !== "string") return;
-      _.mul$tileSets[_.init$tilesetDataSel.value].frames[objectName] = {
-        ...(_.mul$tileSets[_.init$tilesetDataSel.value].frames[objectName] ||
+      _.mul$tileSets[_.init$tilesetDataSel!.value].frames[objectName] = {
+        ...(_.mul$tileSets[_.init$tilesetDataSel!.value].frames[objectName] ||
           {}),
         width: _.updateSelection$selectionSize[0],
         height: _.updateSelection$selectionSize[1],
@@ -592,7 +620,7 @@ export default (exports: Function) =>
       _.mul$selection = getSelectedTile(e);
       _.init$tileSelectStart = null;
 
-      const viewMode = _.init$tileDataSel.value;
+      const viewMode = _.init$tileDataSel!.value;
       if (viewMode === "" && e.button === 2) {
         renameCurrentTileSymbol();
         return;
@@ -608,7 +636,7 @@ export default (exports: Function) =>
             const { x, y } = selected;
             const tileKey = `${x}-${y}`;
             const tagTiles =
-              _.mul$tileSets[_.init$tilesetDataSel.value]?.tags[viewMode]
+              _.mul$tileSets[_.init$tilesetDataSel!.value]?.tags[viewMode]
                 ?.tiles;
             if (tagTiles) {
               if (tileKey in tagTiles) {
@@ -619,13 +647,13 @@ export default (exports: Function) =>
             }
           });
         } else if (viewMode === "frames") {
-          setFramesToSelection(_.init$tileFrameSel.value);
+          setFramesToSelection(_.init$tileFrameSel!.value);
         }
         updateTilesetGridContainer();
       }
     });
     _.init$tilesetContainer.addEventListener("dblclick", (e) => {
-      const viewMode = _.init$tileDataSel.value;
+      const viewMode = _.init$tileDataSel!.value;
       if (viewMode === "") {
         renameCurrentTileSymbol();
       }
@@ -661,7 +689,7 @@ export default (exports: Function) =>
     document
       .getElementById("duplicateMapBtn")!
       .addEventListener("click", () => {
-        const makeNewKey = (key) => {
+        const makeNewKey = (key: string): string => {
           const suggestedNew = `${key}_copy`;
           if (suggestedNew in _.mul$maps) {
             return makeNewKey(suggestedNew);
@@ -692,33 +720,37 @@ export default (exports: Function) =>
       selectMode();
     });
     document.getElementById("addTileTagBtn")!.addEventListener("click", () => {
-      const getEmptyTilesetTag = (name, code, tiles = {}) => ({
+      const getEmptyTilesetTag = (
+        name: string,
+        code: string,
+        tiles = {}
+      ): Tag => ({
         name,
         code,
         tiles,
       });
       const result = window.prompt("Name your tag", "solid()");
       if (result !== null) {
-        if (result in _.mul$tileSets[_.init$tilesetDataSel.value].tags) {
+        if (result in _.mul$tileSets[_.init$tilesetDataSel!.value].tags) {
           alert("Tag already exists");
           return;
         }
-        _.mul$tileSets[_.init$tilesetDataSel.value].tags[result] =
+        _.mul$tileSets[_.init$tilesetDataSel!.value].tags[result] =
           getEmptyTilesetTag(result, result);
         updateTilesetDataList();
         addToUndoStack();
       }
     });
     document
-      .getElementById("removeTileTagBtn")
+      .getElementById("removeTileTagBtn")!
       .addEventListener("click", () => {
         if (
-          _.init$tileDataSel.value &&
-          _.init$tileDataSel.value in
-            _.mul$tileSets[_.init$tilesetDataSel.value].tags
+          _.init$tileDataSel!.value &&
+          _.init$tileDataSel!.value in
+            _.mul$tileSets[_.init$tilesetDataSel!.value].tags
         ) {
-          delete _.mul$tileSets[_.init$tilesetDataSel.value].tags[
-            _.init$tileDataSel.value
+          delete _.mul$tileSets[_.init$tilesetDataSel!.value].tags[
+            _.init$tileDataSel!.value
           ];
           updateTilesetDataList();
           addToUndoStack();
@@ -729,15 +761,17 @@ export default (exports: Function) =>
       "tileFrameSel"
     ) as HTMLSelectElement;
     _.init$tileFrameSel.addEventListener("change", (e) => {
-      _.state$el.tileFrameCount().value = getCurrentFrames()?.frameCount || 1;
+      _.state$el.tileFrameCount!().value = `${
+        getCurrentFrames()?.frameCount || 1
+      }`;
       updateTilesetDataList(true);
       updateTilesetGridContainer();
     });
-    _.state$el.animStart().addEventListener("change", (e) => {
-      getCurrentAnimation().start = Number(_.state$el.animStart().value);
+    _.state$el.animStart!().addEventListener("change", (e) => {
+      getCurrentAnimation()!.start = Number(_.state$el.animStart!().value);
     });
-    _.state$el.animEnd().addEventListener("change", (e) => {
-      getCurrentAnimation().end = Number(_.state$el.animEnd().value);
+    _.state$el.animEnd!().addEventListener("change", (e) => {
+      getCurrentAnimation()!.end = Number(_.state$el.animEnd!().value);
     });
     document
       .getElementById("addTileFrameBtn")!
@@ -746,55 +780,55 @@ export default (exports: Function) =>
           "Name your object",
           `obj${
             Object.keys(
-              _.mul$tileSets[_.init$tilesetDataSel.value]?.frames || {}
+              _.mul$tileSets[_.init$tilesetDataSel!.value]?.frames || {}
             ).length
           }`
         );
         if (result !== null) {
-          if (result in _.mul$tileSets[_.init$tilesetDataSel.value].frames) {
+          if (result in _.mul$tileSets[_.init$tilesetDataSel!.value].frames) {
             alert("Object already exists");
             return;
           }
-          _.mul$tileSets[_.init$tilesetDataSel.value].frames[result] = {
-            frameCount: Number(_.state$el.tileFrameCount().value),
+          _.mul$tileSets[_.init$tilesetDataSel!.value].frames[result] = {
+            frameCount: Number(_.state$el.tileFrameCount!().value),
             animations: {
               a1: {
                 start: 1,
-                end: Number(_.state$el.tileFrameCount().value) || 1, //todo move in here
+                end: Number(_.state$el.tileFrameCount!().value) || 1, //todo move in here
                 name: "a1",
-                loop: _.state$el.animLoop().checked,
-                speed: Number(_.state$el.animSpeed().value),
+                loop: _.state$el.animLoop!().checked,
+                speed: Number(_.state$el.animSpeed!().value),
               },
             },
           };
           setFramesToSelection(result);
           updateTilesetDataList(true);
-          _.init$tileFrameSel.value = result;
+          _.init$tileFrameSel!.value = result;
           updateTilesetGridContainer();
         }
       });
     document
-      .getElementById("removeTileFrameBtn")
+      .getElementById("removeTileFrameBtn")!
       .addEventListener("click", () => {
         if (
-          _.init$tileFrameSel.value &&
-          _.init$tileFrameSel.value in
-            _.mul$tileSets[_.init$tilesetDataSel.value].frames &&
+          _.init$tileFrameSel!.value &&
+          _.init$tileFrameSel!.value in
+            _.mul$tileSets[_.init$tilesetDataSel!.value].frames &&
           confirm(
-            `Are you sure you want to delete ${_.init$tileFrameSel.value}`
+            `Are you sure you want to delete ${_.init$tileFrameSel!.value}`
           )
         ) {
-          delete _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-            _.init$tileFrameSel.value
+          delete _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+            _.init$tileFrameSel!.value
           ];
           updateTilesetDataList(true);
           updateTilesetGridContainer();
         }
       });
     const renameKeyInObjectForSelectElement = (
-      selectElement,
-      objectPath,
-      typeLabel
+      selectElement: HTMLSelectElement,
+      objectPath: {},
+      typeLabel: string
     ) => {
       const oldValue = selectElement.value;
       const result = window.prompt("Rename your animation", `${oldValue}`);
@@ -813,24 +847,24 @@ export default (exports: Function) =>
         Object.defineProperty(
           objectPath,
           result,
-          Object.getOwnPropertyDescriptor(objectPath, oldValue)
+          Object.getOwnPropertyDescriptor(objectPath, oldValue)!
         );
-        delete objectPath[oldValue];
+        delete (objectPath as any)[oldValue];
         updateTilesetDataList(true);
         selectElement.value = result;
         updateTilesetDataList(true);
       }
     };
-    _.state$el.renameTileFrameBtn().addEventListener("click", () => {
+    _.state$el.renameTileFrameBtn!().addEventListener("click", () => {
       // could be a generic function
       renameKeyInObjectForSelectElement(
-        _.init$tileFrameSel,
-        _.mul$tileSets[_.init$tilesetDataSel.value]?.frames,
+        _.init$tileFrameSel!,
+        _.mul$tileSets[_.init$tilesetDataSel!.value]?.frames,
         "object"
       );
     });
-    _.state$el.tileFrameCount().addEventListener("change", (e) => {
-      if (_.init$tileFrameSel.value === "") return;
+    _.state$el.tileFrameCount!().addEventListener("change", (e) => {
+      if (_.init$tileFrameSel!.value === "") return;
       getCurrentFrames().frameCount = Number(target(e).value);
       updateTilesetGridContainer();
     });
@@ -841,11 +875,11 @@ export default (exports: Function) =>
     ) as HTMLSelectElement;
     _.init$tileAnimSel.addEventListener("change", (e) => {
       //swap with tileAnimSel
-      console.log("anim select", e, _.init$tileAnimSel.value);
-      _.state$el.animStart().value = getCurrentAnimation()?.start || 1;
-      _.state$el.animEnd().value = getCurrentAnimation()?.end || 1;
-      _.state$el.animLoop().checked = getCurrentAnimation()?.loop || false;
-      _.state$el.animSpeed().value = getCurrentAnimation()?.speed || 1;
+      console.log("anim select", e, _.init$tileAnimSel!.value);
+      _.state$el.animStart!().value = `${getCurrentAnimation()?.start || 1}`;
+      _.state$el.animEnd!().value = `${getCurrentAnimation()?.end || 1}`;
+      _.state$el.animLoop!().checked = getCurrentAnimation()?.loop || false;
+      _.state$el.animSpeed!().value = `${getCurrentAnimation()?.speed || 1}`;
       updateTilesetGridContainer();
     });
     document.getElementById("addTileAnimBtn")!.addEventListener("click", () => {
@@ -853,135 +887,141 @@ export default (exports: Function) =>
         "Name your animation",
         `anim${
           Object.keys(
-            _.mul$tileSets[_.init$tilesetDataSel.value]?.frames[
-              _.init$tileFrameSel.value
+            _.mul$tileSets[_.init$tilesetDataSel!.value]?.frames[
+              _.init$tileFrameSel!.value
             ]?.animations || {}
           ).length
         }`
       );
       if (result !== null) {
         if (
-          !_.mul$tileSets[_.init$tilesetDataSel.value].frames[
-            _.init$tileFrameSel.value
+          !_.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+            _.init$tileFrameSel!.value
           ]?.animations
         ) {
-          _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-            _.init$tileFrameSel.value
+          _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+            _.init$tileFrameSel!.value
           ].animations = {};
         }
         if (
           result in
-          _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-            _.init$tileFrameSel.value
-          ]?.animations
+          _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+            _.init$tileFrameSel!.value
+          ]?.animations!
         ) {
           alert("Animation already exists");
           return;
         }
-        _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-          _.init$tileFrameSel.value
-        ].animations[result] = {
+        _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+          _.init$tileFrameSel!.value
+        ].animations![result] = {
           start: 1,
-          end: Number(_.state$el.tileFrameCount().value || 1),
-          loop: _.state$el.animLoop().checked,
-          speed: Number(_.state$el.animSpeed().value || 1),
+          end: Number(_.state$el.tileFrameCount!().value || 1),
+          loop: _.state$el.animLoop!().checked,
+          speed: Number(_.state$el.animSpeed!().value || 1),
           name: result,
         };
         // setFramesToSelection(tileFrameSel.value, result);
         updateTilesetDataList(true);
-        _.init$tileAnimSel.value = result;
+        _.init$tileAnimSel!.value = result;
         updateTilesetGridContainer();
       }
     });
     document
-      .getElementById("removeTileAnimBtn")
+      .getElementById("removeTileAnimBtn")!
       .addEventListener("click", () => {
         console.log(
           "delete",
-          _.init$tileAnimSel.value,
-          _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-            _.init$tileFrameSel.value
+          _.init$tileAnimSel!.value,
+          _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+            _.init$tileFrameSel!.value
           ].animations
         );
         if (
-          _.init$tileAnimSel.value &&
-          _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-            _.init$tileFrameSel.value
+          _.init$tileAnimSel!.value &&
+          _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+            _.init$tileFrameSel!.value
           ]?.animations &&
-          _.init$tileAnimSel.value in
-            _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-              _.init$tileFrameSel.value
-            ]?.animations &&
-          confirm(`Are you sure you want to delete ${_.init$tileAnimSel.value}`)
+          _.init$tileAnimSel!.value in
+            _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+              _.init$tileFrameSel!.value
+            ]?.animations! &&
+          confirm(
+            `Are you sure you want to delete ${_.init$tileAnimSel!.value}`
+          )
         ) {
-          delete _.mul$tileSets[_.init$tilesetDataSel.value].frames[
-            _.init$tileFrameSel.value
-          ].animations[_.init$tileAnimSel.value];
+          delete _.mul$tileSets[_.init$tilesetDataSel!.value].frames[
+            _.init$tileFrameSel!.value
+          ].animations![_.init$tileAnimSel!.value];
           updateTilesetDataList(true);
           updateTilesetGridContainer();
         }
       });
-    _.state$el.renameTileAnimBtn().addEventListener("click", () => {
+    _.state$el.renameTileAnimBtn!().addEventListener("click", () => {
       renameKeyInObjectForSelectElement(
-        _.init$tileAnimSel,
-        _.mul$tileSets[_.init$tilesetDataSel.value]?.frames[
-          _.init$tileFrameSel.value
-        ]?.animations,
+        _.init$tileAnimSel!,
+        _.mul$tileSets[_.init$tilesetDataSel!.value]?.frames[
+          _.init$tileFrameSel!.value
+        ]?.animations!,
         "animation"
       );
     });
 
-    _.state$el.animLoop().addEventListener("change", () => {
-      getCurrentAnimation().loop = _.state$el.animLoop().checked;
+    _.state$el.animLoop!().addEventListener("change", () => {
+      getCurrentAnimation!()!.loop = _.state$el.animLoop!().checked;
     });
-    _.state$el.animSpeed().addEventListener("change", (e) => {
-      getCurrentAnimation().speed = _.state$el.animSpeed().value;
+    _.state$el.animSpeed!().addEventListener("change", (e) => {
+      getCurrentAnimation!()!.speed = _.state$el.animSpeed!()
+        .value as unknown as number;
     });
     // Tileset SELECT callbacks
     _.init$tilesetDataSel = document.getElementById(
       "tilesetDataSel"
     ) as HTMLSelectElement;
     _.init$tilesetDataSel.addEventListener("change", (e) => {
-      _.init$tilesetImage.src =
-        _.reloadTilesets$TILESET_ELEMENTS[target(e).value].src;
-      _.init$tilesetImage.crossOrigin = "Anonymous";
+      _.init$tilesetImage!.src =
+        _.reloadTilesets$TILESET_ELEMENTS[
+          target(e).value as unknown as number
+        ].src;
+      _.init$tilesetImage!.crossOrigin = "Anonymous";
       updateTilesetDataList();
     });
-    _.state$el.tileFrameCount().addEventListener("change", () => {
-      _.state$el.animStart().max = _.state$el.tileFrameCount().value;
-      _.state$el.animEnd().max = _.state$el.tileFrameCount().value;
+    _.state$el.tileFrameCount!().addEventListener("change", () => {
+      _.state$el.animStart!().max = _.state$el.tileFrameCount!().value;
+      _.state$el.animEnd!().max = _.state$el.tileFrameCount!().value;
     });
 
-    const replaceSelectedTileSet = (src) => {
+    const replaceSelectedTileSet = (src: string) => {
       addToUndoStack();
-      _.mul$IMAGES[Number(_.init$tilesetDataSel.value)].src = src;
+      _.mul$IMAGES[Number(_.init$tilesetDataSel!.value)].src = src;
       reloadTilesets();
     };
-    const addNewTileSet = (src) => {
+    const addNewTileSet = (src: string) => {
       console.log("add new tileset" + src);
       addToUndoStack();
       _.mul$IMAGES.push({ src });
       reloadTilesets();
     };
+    //@ts-expect-error FIXME: exports
     exports.addNewTileSet = addNewTileSet;
     // replace tileset
     document
-      .getElementById("tilesetReplaceInput")
+      .getElementById("tilesetReplaceInput")!
       .addEventListener("change", (e) => {
-        toBase64(target(e).files[0]).then((base64Src) => {
+        toBase64(target(e).files![0]).then((base64Src) => {
           if (_.init_state$selectedTileSetLoader.onSelectImage) {
             _.init_state$selectedTileSetLoader.onSelectImage(
               replaceSelectedTileSet,
-              target(e).files[0],
+              target(e).files![0],
               base64Src
             );
           }
         });
       });
     document
-      .getElementById("replaceTilesetBtn")
+      .getElementById("replaceTilesetBtn")!
       .addEventListener("click", () => {
-        if (_.init_state$selectedTileSetLoader.onSelectImage) {
+        if (_.init_state$selectedTileSetLoader.onSelectImage!) {
           document.getElementById("tilesetReplaceInput")!.click();
         }
         if (_.init_state$selectedTileSetLoader.prompt) {
@@ -990,13 +1030,13 @@ export default (exports: Function) =>
       });
     // add tileset
     document
-      .getElementById("tilesetReadInput")
+      .getElementById("tilesetReadInput")!
       .addEventListener("change", (e) => {
-        toBase64(target(e).files[0]).then((base64Src) => {
+        toBase64(target(e).files![0]).then((base64Src) => {
           if (_.init_state$selectedTileSetLoader.onSelectImage) {
             _.init_state$selectedTileSetLoader.onSelectImage(
               addNewTileSet,
-              target(e).files[0],
+              target(e).files![0],
               base64Src
             );
           }
@@ -1023,15 +1063,25 @@ export default (exports: Function) =>
     });
 
     tileSetLoadersSel.value = "base64";
+    //@ts-expect-error FIXME: type
     _.init_state$selectedTileSetLoader =
-      _.init_state$apiTileSetLoaders[tileSetLoadersSel.value];
+      _.init_state$apiTileSetLoaders[
+        tileSetLoadersSel.value as keyof ApiTileSetLoaders
+      ];
     tileSetLoadersSel.addEventListener("change", (e) => {
+      //@ts-expect-error FIXME: type
       _.init_state$selectedTileSetLoader =
-        _.init_state$apiTileSetLoaders[target(e).value];
+        _.init_state$apiTileSetLoaders[
+          target(e).value as keyof ApiTileSetLoaders
+        ];
     });
+    //@ts-expect-error FIXME: exports
     exports.tilesetLoaders = _.init_state$apiTileSetLoaders;
 
-    const deleteTilesetWithIndex = (index, cb = null) => {
+    const deleteTilesetWithIndex = (
+      index: number,
+      cb: (() => void) | null = null
+    ) => {
       if (confirm(`Are you sure you want to delete this image?`)) {
         addToUndoStack();
         _.mul$IMAGES.splice(index, 1);
@@ -1039,14 +1089,16 @@ export default (exports: Function) =>
         if (cb) cb();
       }
     };
+    //@ts-expect-error FIXME: exports
     exports.IMAGES = _.mul$IMAGES;
+    //@ts-expect-error FIXME: exports
     exports.deleteTilesetWithIndex = deleteTilesetWithIndex;
     document
-      .getElementById("removeTilesetBtn")
+      .getElementById("removeTilesetBtn")!
       .addEventListener("click", () => {
         //Remove current tileset
-        if (_.init$tilesetDataSel.value !== "0") {
-          deleteTilesetWithIndex(Number(_.init$tilesetDataSel.value));
+        if (_.init$tilesetDataSel!.value !== "0") {
+          deleteTilesetWithIndex(Number(_.init$tilesetDataSel!.value));
         }
       });
 
@@ -1065,12 +1117,12 @@ export default (exports: Function) =>
     });
     // Canvas Resizer ===================
     document
-      .getElementById("canvasWidthInp")
+      .getElementById("canvasWidthInp")!
       .addEventListener("change", (e) => {
         updateMapSize({ mapWidth: Number(target(e).value) });
       });
     document
-      .getElementById("canvasHeightInp")
+      .getElementById("canvasHeightInp")!
       .addEventListener("change", (e) => {
         updateMapSize({ mapHeight: Number(target(e).value) });
       });
@@ -1089,17 +1141,17 @@ export default (exports: Function) =>
     // });
 
     document
-      .querySelector(".canvas_resizer[resizerdir='y'] input")
+      .querySelector(".canvas_resizer[resizerdir='y'] input")!
       .addEventListener("change", (e) => {
         updateMapSize({ mapHeight: Number(target(e).value) });
       });
     document
-      .querySelector(".canvas_resizer[resizerdir='x'] input")
+      .querySelector(".canvas_resizer[resizerdir='x'] input")!
       .addEventListener("change", (e) => {
         updateMapSize({ mapWidth: Number(target(e).value) });
       });
     document
-      .getElementById("toolButtonsWrapper")
+      .getElementById("toolButtonsWrapper")!
       .addEventListener("click", (e) => {
         console.log("ACTIVE_TOOL", target(e).value);
         if (target(e).getAttribute("name") === "tool")
@@ -1113,7 +1165,7 @@ export default (exports: Function) =>
     });
 
     document
-      .getElementById("clearCanvasBtn")
+      .getElementById("clearCanvasBtn")!
       .addEventListener("click", clearCanvas);
     if (onApply) {
       _.init$confirmBtn.addEventListener("click", () =>
@@ -1141,7 +1193,7 @@ export default (exports: Function) =>
     });
 
     const fileMenuDropDown = document.getElementById("fileMenuDropDown")!;
-    const makeMenuItem = (name, value, description) => {
+    const makeMenuItem = (name: string, value: string, description: string) => {
       const menuItem = document.createElement("span") as HTMLInputElement;
       menuItem.className = "item";
       menuItem.innerText = name;
@@ -1154,9 +1206,11 @@ export default (exports: Function) =>
       makeMenuItem(exporter.name, key, exporter.description).onclick = () => {
         exporter.transformer(getExportData());
       };
+      //@ts-expect-error FIXME: type
       _.init_state$apiTileMapExporters[key].getData = () =>
         exporter.transformer(getExportData());
     });
+    //@ts-expect-error FIXME: exports
     exports.exporters = _.init_state$apiTileMapExporters;
 
     Object.entries(_.init_state$apiTileMapImporters).forEach(
@@ -1204,7 +1258,7 @@ export default (exports: Function) =>
     document.getElementById("zoomIn")!.addEventListener("click", zoomIn);
     document.getElementById("zoomOut")!.addEventListener("click", zoomOut);
     document
-      .getElementById("setSymbolsVisBtn")
+      .getElementById("setSymbolsVisBtn")!
       .addEventListener("click", () => toggleSymbolsVisible());
     // Scroll zoom in/out - use wheel instead of scroll event since theres no scrollbar on the map
     _.init$canvas.addEventListener("wheel", (e) => {
@@ -1228,7 +1282,7 @@ export default (exports: Function) =>
 
     // Animated tiles when on frames mode
     const animateTiles = () => {
-      if (_.init$tileDataSel.value === "frames") draw();
+      if (_.init$tileDataSel!.value === "frames") draw();
       requestAnimationFrame(animateTiles);
     };
     requestAnimationFrame(animateTiles);

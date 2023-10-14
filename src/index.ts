@@ -4,7 +4,12 @@ import getMapFromGist from "./getMapFromGist.js";
 import kaboomJsExport from "./kaboomJsExport.js";
 import uploadImageToImgur from "./uploadImageToImgur.js";
 import TilemapEditor from "./TilemapEditor/index.js";
-import { DeferredPrompt, TileMapData, TileSet } from "./TilemapEditor/store.js";
+import {
+  DeferredPrompt,
+  FlattenedData,
+  TileMapData,
+  TileSet,
+} from "./TilemapEditor/store.js";
 // import ioJsonData from "./constants/ioJsonData.js";
 
 let _tileSetImages = tileSetImages;
@@ -99,9 +104,7 @@ const initTilemapEditor = () => {
         tileSets,
       }: // activeMap,
       {
-        flattenedData: {
-          flattenedData: [];
-        }[];
+        flattenedData: FlattenedData;
         tileSets: Record<string, TileSet>;
       }) => {
         console.log("onClick, gets the data too");

@@ -451,8 +451,8 @@ export const addRandomTile = (key: string) => {
     const tilesetTiles = _.mul$tileSets[_.init$tilesetDataSel!.value].tileData;
     const { frameCount, tiles, width } = getCurrentFrames();
     const randOffset = Math.floor(Math.random() * frameCount);
-    const randXOffsetTiles = tiles.map(
-      (tile) => tilesetTiles[`${tile.x + randOffset * width}-${tile.y}`]
+    const randXOffsetTiles = tiles!.map(
+      (tile) => tilesetTiles[`${tile.x + randOffset * width!}-${tile.y}`]
     );
     addSelectedTiles(key, randXOffsetTiles);
   }
@@ -537,14 +537,14 @@ export const updateTilesetGridContainer = () => {
 
       const { width, height, start, tiles, frameCount } = frameData;
 
-      _.mul$selection = [...tiles];
+      _.mul$selection = [...tiles!];
       ctx.lineWidth = 0.5;
       ctx.strokeStyle = "red";
       ctx.strokeRect(
-        _.mul$SIZE_OF_CROP * _.mul$ZOOM * (start.x + width),
-        _.mul$SIZE_OF_CROP * _.mul$ZOOM * start.y,
-        _.mul$SIZE_OF_CROP * _.mul$ZOOM * (width * (frameCount - 1)),
-        _.mul$SIZE_OF_CROP * _.mul$ZOOM * height
+        _.mul$SIZE_OF_CROP * _.mul$ZOOM * (start!.x + width!),
+        _.mul$SIZE_OF_CROP * _.mul$ZOOM * start!.y,
+        _.mul$SIZE_OF_CROP * _.mul$ZOOM * (width! * (frameCount - 1)),
+        _.mul$SIZE_OF_CROP * _.mul$ZOOM * height!
       );
     } else if (!hideSymbols) {
       const x = tile % gridWidth;

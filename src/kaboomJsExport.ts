@@ -1,4 +1,9 @@
-import { Tile, TileSet } from "./TilemapEditor/store";
+import {
+  FlattenedData,
+  FlattenedDataItem,
+  Tile,
+  TileSet,
+} from "./TilemapEditor/store";
 
 // kaboomJs example exporter
 export default ({
@@ -8,7 +13,7 @@ export default ({
   // downloadAsTextFile,
   tileSets,
 }: {
-  flattenedData: { flattenedData: [] }[];
+  flattenedData: FlattenedData;
   tileSets: Record<string, TileSet>;
 }) => {
   const getTileData = (tileSet: TileSet, tileSetIdx: number) =>
@@ -77,6 +82,7 @@ export default ({
       // maps
       ${flattenedData
         .map(
+          //@ts-expect-error FIXME: type
           (map, index) => `
         const map_${index} = [${getAsciiMap(
             map.flattenedData[map.flattenedData.length - 1]
