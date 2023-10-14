@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outFile": "./dist/tilemap-editor.js",
     "rootDir": "./",
-    "module": "ESNext",
+    "module": "AMD",
     "target": "ESNext",
-    "allowJs": true,
-    "declaration": false,
-    "isolatedModules": true
+    "allowJs": false,
+    "declaration": true,
+    "sourceMap": true
   },
-  "include": ["**/*.*"],
+  "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
 }

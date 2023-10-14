@@ -4,9 +4,8 @@
   "description": "A fat-free tilemap editor with zero dependencies and a scalable, mobile-friendly interface!",
   "main": "src/tilemap-editor.js",
   "scripts": {
-    "start": "npm run build && serve",
-    "build": "rimraf dist && tsc",
-    "predeploy": "node updatePwa.js",
+    "start": "npm run predeploy && serve",
+    "predeploy": "rimraf dist && tsc && node updatePwa.js",
     "deploy": "gh-pages -d ."
   },
   "repository": {
@@ -29,9 +28,7 @@
   "homepage": "https://github.com/blurymind/tilemap-editor#readme",
   "devDependencies": {
     "gh-pages": "^3.2.2",
-    "serve": "^12.0.0"
-  },
-  "dependencies": {
+    "serve": "^12.0.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.2.2"
   }

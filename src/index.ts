@@ -1,4 +1,3 @@
-import importTiledJson from "../importers/tiled.js";
 import tileSetImages from "./constants/tileSetImages.js";
 import getImgurGallery from "./getImgurGallery.js";
 import getMapFromGist from "./getMapFromGist.js";
@@ -8,8 +7,6 @@ import TilemapEditor from "./TilemapEditor/index.js";
 // import ioJsonData from "./constants/ioJsonData.js";
 
 let _tileSetImages = tileSetImages;
-
-importTiledJson();
 
 let tileSize = 32;
 let mapWidth = 10;
