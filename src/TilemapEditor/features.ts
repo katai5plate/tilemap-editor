@@ -1090,15 +1090,12 @@ export const reloadTilesets = () => {
         tags: oldTilesets[idx]?.tags,
         frames: oldTilesets[idx]?.frames,
         tileSize,
-        // animations: oldTilesets[idx]?.animations,
+        //@ts-expect-error FIXME: type
+        animations: oldTilesets[idx]?.animations,
         src: tsImage.src,
         name: `tileset ${idx}`,
         width: tsImage.width,
         height: tsImage.height,
-        // FIXME: temp value
-        gridWidth: tileSize,
-        gridHeight: tileSize,
-        symbolStartIdx: 0,
       });
     });
     // console.log("POPULATED", tileSets)
